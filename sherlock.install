@@ -1,0 +1,37 @@
+<?php
+//  function sherlock_schema() {
+//    $schema['sherlock_resources'] = array(
+//      'description' => 'Table for resources and their search invokes.',
+//      'fields' => array(
+//        'id' => array(
+//          'description' => 'The primary identifier for records, int and autoincrement.',
+//          'type' => 'serial',
+//          'unsigned' => TRUE,
+//          'not null' => TRUE,
+//        ),
+//
+//        'base_url' => array(
+//          'description' => 'Base URL for resource. Such as http://olx.ua',
+//          'type' => 'varchar',
+//          'length' => 255,
+//          'not null' => TRUE,
+//        ),
+//
+//        'search_prefix' => array(
+//          'description' => 'Prefix before searching word(s) to invoke search',
+//          'type' => 'varchar',
+//          'length' => 255,
+//          'not null' => TRUE,
+//        ),
+//
+//        'words_glue' => array(
+//          'description' => 'Symbol for concatenating words in one search query, usually + or -.',
+//          'type' => 'char',
+//          'length' => 1,
+//          'not null' => TRUE,
+//        ),
+//      ),
+//    );
+//
+//    return $schema;
+//  }
