@@ -18,8 +18,10 @@ function sherlock_searchform($form, &$form_state) {
     $form['#prefix'] = '<div id="sherlock-search-form">';
     $form['#suffix'] = '</div>';
 
-    foreach ($form_state['user_added'] as $key => $value) {
-        $form[$key] = $value;
+    if(isset($form_state['user_added'])) {
+        foreach ($form_state['user_added'] as $key => $value) {
+            $form[$key] = $value;
+        }
     }
 
     $form['btn_addfield'] = array(
@@ -147,7 +149,6 @@ function btn_reset_handler($form, &$form_state) {
     if ($pressed_btn_name != 'btn_reset') {return;}
 
     unset ($form_state['user_added']);
-    $form_state['rebuild'] = TRUE;
 }
 
 function sherlock_searchform_submit($form, &$form_state) {
