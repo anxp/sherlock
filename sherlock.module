@@ -25,9 +25,16 @@ function sherlock_searchform($form, &$form_state) {
         '#title' => 'Choose flea-markets websites to search on',
     );
 
+    $form['query_constructor_block'] = array(
+        '#type' => 'fieldset',
+        '#title' => '',
+        '#collapsible' => FALSE,
+        '#collapsed' => FALSE,
+    );
+
     if(isset($form_state['user_added'])) {
         foreach ($form_state['user_added'] as $key => $value) {
-            $form[$key] = $value;
+            $form['query_constructor_block'][$key] = $value;
         }
     }
 
