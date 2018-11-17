@@ -18,6 +18,13 @@ function sherlock_searchform($form, &$form_state) {
     $form['#prefix'] = '<div id="sherlock-search-form">';
     $form['#suffix'] = '</div>';
 
+    //TODO: avoid harcoding resources and fetch them from DB:
+    $form['resources_chooser'] = array(
+        '#type' => 'checkboxes',
+        '#options' => drupal_map_assoc(array('OLX', 'Skylots', 'Besplatka')),
+        '#title' => 'Choose flea-markets websites to search on',
+    );
+
     if(isset($form_state['user_added'])) {
         foreach ($form_state['user_added'] as $key => $value) {
             $form[$key] = $value;
@@ -149,10 +156,24 @@ function btn_reset_handler($form, &$form_state) {
     if ($pressed_btn_name != 'btn_reset') {return;}
 
     unset ($form_state['user_added']);
+    $form_state['rebuild'] = FALSE;
 }
 
 function sherlock_searchform_submit($form, &$form_state) {
-    //Don't forget to check pressed button!
+    $pressed_btn_name = $form_state['triggering_element']['#name'];
+    if ($pressed_btn_name != 'btn_submit') {return;}
+
+    $data = $form_state['values'];
+    $search_url = '';
+//    foreach ($data as $key => $value) {
+//        if($key begins with E) {
+//           $search_url .= $value;
+//        }
+//
+//        if($key begins with B) {
+//
+//        }
+//    }
     sherlock_debug_msg($form_state['values']);
 }
 
