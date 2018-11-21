@@ -158,6 +158,7 @@ function btn_addvariation_handler($form, &$form_state) {
     $form_state['rebuild'] = TRUE;
 }
 
+//Consider to delete this functionality, because reset not works...
 function btn_reset_handler($form, &$form_state) {
     $pressed_btn_name = $form_state['triggering_element']['#name'];
     if ($pressed_btn_name != 'btn_reset') {return;}
@@ -170,17 +171,29 @@ function sherlock_searchform_submit($form, &$form_state) {
     $pressed_btn_name = $form_state['triggering_element']['#name'];
     if ($pressed_btn_name != 'btn_submit') {return;}
 
-    $data = $form_state['values'];
-    $search_url = '';
-//    foreach ($data as $key => $value) {
-//        if($key begins with E) {
-//           $search_url .= $value;
-//        }
-//
-//        if($key begins with B) {
-//
-//        }
-//    }
+    //Save all block values\variations to separate array
+    $block_values = array();
+    foreach ($form_state['values']['query_constructor_block'] as $key => $value) {
+        if (startsWith($key, 'B-')) {
+            $block_values[] = $value['VALUES'];
+        }
+    }
+
+    $variations_array = array();
+    $variations_array = array_shift($block_values);
+    while (!empty($block_values)) {
+        $array_A = $variations_array;
+        $variations_array = array();
+        $array_B = array_shift($block_values);
+
+        foreach ($array_A as $value_A) {
+            foreach ($array_B as $value_B) {
+                $variations_array[] = $value_A.$value_B;
+            }
+        }
+    }
+    
+    $form_state['values']['AAA'] = $variations_array;
     sherlock_debug_msg($form_state['values']);
 }
 
@@ -195,4 +208,21 @@ function get_num_elements(&$form_state) {
 
 function sherlock_debug_msg($x) {
     drupal_set_message('<pre>'.print_r($x, true).'</pre>');
+}
+
+//Some routine functions copypasted from stackoverflow :)
+function startsWith($haystack, $needle)
+{
+    $length = strlen($needle);
+    return (substr($haystack, 0, $length) === $needle);
+}
+
+function endsWith($haystack, $needle)
+{
+    $length = strlen($needle);
+    if ($length == 0) {
+        return true;
+    }
+
+    return (substr($haystack, -$length) === $needle);
 }
