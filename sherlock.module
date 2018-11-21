@@ -83,28 +83,28 @@ function btn_addterm_handler($form, &$form_state) {
 
     $num_elements = isset($form_state['user_added']) ? count($form_state['user_added']) : 0;
 
-    //'B-' is for Block
-    $form_state['user_added']['B-'.$num_elements] = array(
+    //'KWRD-' is for Keyword
+    $form_state['user_added']['KWRD-'.$num_elements] = array(
         '#type' => 'fieldset',
-        '#title' => 'B-'.$num_elements,
+        '#title' => 'KWRD-'.$num_elements,
         '#collapsible' => FALSE,
         '#collapsed' => FALSE,
     );
 
     //This is nested block for variation values only
-    $form_state['user_added']['B-'.$num_elements]['VALUES'] = array(
+    $form_state['user_added']['KWRD-'.$num_elements]['VALUES'] = array(
         '#type' => 'fieldset',
         '#collapsible' => FALSE,
         '#collapsed' => FALSE,
     );
 
-    $form_state['user_added']['B-'.$num_elements]['VALUES'][0] = array(
+    $form_state['user_added']['KWRD-'.$num_elements]['VALUES'][0] = array(
         '#type' => 'textfield',
         '#required' => TRUE,
         '#title' => 'Variation '.$num_elements.'/'.'0',
     );
 
-    $form_state['user_added']['B-'.$num_elements]['btn_addvariation-'.$num_elements] = array(
+    $form_state['user_added']['KWRD-'.$num_elements]['btn_addvariation-'.$num_elements] = array(
         '#type' => 'submit',
         '#value' => 'Add Variation',
         '#name' => 'btn_addvariation-'.$num_elements,
@@ -124,14 +124,14 @@ function btn_addvariation_handler($form, &$form_state) {
     if (!((bool) strstr($pressed_btn_name, 'btn_addvariation'))) {return;}
 
     $btn_id = (int) explode('-', $pressed_btn_name)[1];
-    $variationNo = isset($form_state['values']['query_constructor_block']['B-'.$btn_id]['VALUES']) ? count($form_state['values']['query_constructor_block']['B-'.$btn_id]['VALUES']) : 0;
+    $variationNo = isset($form_state['values']['query_constructor_block']['KWRD-'.$btn_id]['VALUES']) ? count($form_state['values']['query_constructor_block']['KWRD-'.$btn_id]['VALUES']) : 0;
     $newfield = array(
         '#type' => 'textfield',
         '#required' => TRUE,
         '#title' => 'Variation '.$btn_id.'/'.$variationNo,
     );
 
-    array_push($form_state['user_added']['B-'.$btn_id]['VALUES'], $newfield);
+    array_push($form_state['user_added']['KWRD-'.$btn_id]['VALUES'], $newfield);
 
     $form_state['rebuild'] = TRUE;
 }
@@ -152,7 +152,7 @@ function sherlock_searchform_submit($form, &$form_state) {
     //Save all block values\variations to separate array
     $block_values = array();
     foreach ($form_state['values']['query_constructor_block'] as $key => $value) {
-        if (startsWith($key, 'B-')) {
+        if (startsWith($key, 'KWRD-')) {
             $block_values[] = $value['VALUES'];
         }
     }
