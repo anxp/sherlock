@@ -38,24 +38,12 @@ function sherlock_searchform($form, &$form_state) {
         }
     }
 
-    $form['btn_addfield'] = array(
+    $form['btn_addterm'] = array(
         '#type' => 'submit',
         '#value' => 'Add Term',
-        '#name' => 'btn_addfield',
+        '#name' => 'btn_addterm',
         '#submit' => array(
-            'btn_addfield_handler',
-        ),
-        '#ajax' => array(
-            'callback' => 'updatedform_return',
-        ),
-    );
-
-    $form['btn_addblock'] = array(
-        '#type' => 'submit',
-        '#value' => 'Add Term Variations',
-        '#name' => 'btn_addblock',
-        '#submit' => array(
-            'btn_addblock_handler',
+            'btn_addterm_handler',
         ),
         '#ajax' => array(
             'callback' => 'updatedform_return',
@@ -89,27 +77,11 @@ function updatedform_return($form, $form_state) {
     );
 }
 
-function btn_addfield_handler($form, &$form_state) {
+function btn_addterm_handler($form, &$form_state) {
     $pressed_btn_name = $form_state['triggering_element']['#name'];
-    if ($pressed_btn_name != 'btn_addfield') {return;}
+    if ($pressed_btn_name != 'btn_addterm') {return;}
 
-    $num_elements = get_num_elements($form_state);
-
-    //'E-' is for Element
-    $form_state['user_added']['E-'.$num_elements] = array(
-        '#title' => 'E-'.$num_elements,
-        '#type' => 'textfield',
-        '#required' => TRUE,
-    );
-
-    $form_state['rebuild'] = TRUE;
-}
-
-function btn_addblock_handler($form, &$form_state) {
-    $pressed_btn_name = $form_state['triggering_element']['#name'];
-    if ($pressed_btn_name != 'btn_addblock') {return;}
-
-    $num_elements = get_num_elements($form_state);
+    $num_elements = isset($form_state['user_added']) ? count($form_state['user_added']) : 0;
 
     //'B-' is for Block
     $form_state['user_added']['B-'.$num_elements] = array(
@@ -124,6 +96,12 @@ function btn_addblock_handler($form, &$form_state) {
         '#type' => 'fieldset',
         '#collapsible' => FALSE,
         '#collapsed' => FALSE,
+    );
+
+    $form_state['user_added']['B-'.$num_elements]['VALUES'][0] = array(
+        '#type' => 'textfield',
+        '#required' => TRUE,
+        '#title' => 'Variation '.$num_elements.'/'.'0',
     );
 
     $form_state['user_added']['B-'.$num_elements]['btn_addvariation-'.$num_elements] = array(
@@ -146,7 +124,7 @@ function btn_addvariation_handler($form, &$form_state) {
     if (!((bool) strstr($pressed_btn_name, 'btn_addvariation'))) {return;}
 
     $btn_id = (int) explode('-', $pressed_btn_name)[1];
-    $variationNo = isset($form_state['values']['B-'.$btn_id]['VALUES']) ? count($form_state['values']['B-'.$btn_id]['VALUES']) : 0;
+    $variationNo = isset($form_state['values']['query_constructor_block']['B-'.$btn_id]['VALUES']) ? count($form_state['values']['query_constructor_block']['B-'.$btn_id]['VALUES']) : 0;
     $newfield = array(
         '#type' => 'textfield',
         '#required' => TRUE,
@@ -192,18 +170,9 @@ function sherlock_searchform_submit($form, &$form_state) {
             }
         }
     }
-    
+
     $form_state['values']['AAA'] = $variations_array;
     sherlock_debug_msg($form_state['values']);
-}
-
-function get_num_elements(&$form_state) {
-    if (!isset($form_state['user_added'])) {
-        $form_state['user_added'] = array();
-        return 0;
-    } else {
-        return count($form_state['user_added']);
-    }
 }
 
 function sherlock_debug_msg($x) {
