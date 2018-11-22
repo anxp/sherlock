@@ -32,6 +32,10 @@ function sherlock_searchform($form, &$form_state) {
         '#collapsed' => FALSE,
     );
 
+    if(!isset($form_state['user_added'])) {
+        new_block($form_state);
+    }
+
     if(isset($form_state['user_added'])) {
         foreach ($form_state['user_added'] as $key => $value) {
             $form['query_constructor_block'][$key] = $value;
@@ -68,6 +72,42 @@ function sherlock_searchform($form, &$form_state) {
     return $form;
 }
 
+function new_block(&$form_state) {
+    $num_elements = isset($form_state['user_added']) ? count($form_state['user_added']) : 0;
+
+    $form_state['user_added']['KEYWORD-'.$num_elements] = array(
+        '#type' => 'fieldset',
+        '#title' => 'KEYWORD-'.$num_elements,
+        '#collapsible' => FALSE,
+        '#collapsed' => FALSE,
+    );
+
+    //This is nested block for variation values only
+    $form_state['user_added']['KEYWORD-'.$num_elements]['VALUES'] = array(
+        '#type' => 'fieldset',
+        '#collapsible' => FALSE,
+        '#collapsed' => FALSE,
+    );
+
+    $form_state['user_added']['KEYWORD-'.$num_elements]['VALUES'][0] = array(
+        '#type' => 'textfield',
+        '#required' => TRUE,
+        '#title' => 'Variation '.$num_elements.'/'.'0',
+    );
+
+    $form_state['user_added']['KEYWORD-'.$num_elements]['btn_addvariation-'.$num_elements] = array(
+        '#type' => 'submit',
+        '#value' => 'Add Variation',
+        '#name' => 'btn_addvariation-'.$num_elements,
+        '#submit' => array(
+            'btn_addvariation_handler',
+        ),
+        '#ajax' => array(
+            'callback' => 'updatedform_return',
+        ),
+    );
+}
+
 function updatedform_return($form, $form_state) {
     $commands = array();
     $commands[] = ajax_command_replace('#sherlock-search-form', drupal_render($form));
@@ -81,40 +121,7 @@ function btn_addterm_handler($form, &$form_state) {
     $pressed_btn_name = $form_state['triggering_element']['#name'];
     if ($pressed_btn_name != 'btn_addterm') {return;}
 
-    $num_elements = isset($form_state['user_added']) ? count($form_state['user_added']) : 0;
-
-    //'KWRD-' is for Keyword
-    $form_state['user_added']['KWRD-'.$num_elements] = array(
-        '#type' => 'fieldset',
-        '#title' => 'KWRD-'.$num_elements,
-        '#collapsible' => FALSE,
-        '#collapsed' => FALSE,
-    );
-
-    //This is nested block for variation values only
-    $form_state['user_added']['KWRD-'.$num_elements]['VALUES'] = array(
-        '#type' => 'fieldset',
-        '#collapsible' => FALSE,
-        '#collapsed' => FALSE,
-    );
-
-    $form_state['user_added']['KWRD-'.$num_elements]['VALUES'][0] = array(
-        '#type' => 'textfield',
-        '#required' => TRUE,
-        '#title' => 'Variation '.$num_elements.'/'.'0',
-    );
-
-    $form_state['user_added']['KWRD-'.$num_elements]['btn_addvariation-'.$num_elements] = array(
-        '#type' => 'submit',
-        '#value' => 'Add Variation',
-        '#name' => 'btn_addvariation-'.$num_elements,
-        '#submit' => array(
-            'btn_addvariation_handler',
-        ),
-        '#ajax' => array(
-            'callback' => 'updatedform_return',
-        ),
-    );
+    new_block($form_state);
 
     $form_state['rebuild'] = TRUE;
 }
@@ -124,14 +131,14 @@ function btn_addvariation_handler($form, &$form_state) {
     if (!((bool) strstr($pressed_btn_name, 'btn_addvariation'))) {return;}
 
     $btn_id = (int) explode('-', $pressed_btn_name)[1];
-    $variationNo = isset($form_state['values']['query_constructor_block']['KWRD-'.$btn_id]['VALUES']) ? count($form_state['values']['query_constructor_block']['KWRD-'.$btn_id]['VALUES']) : 0;
+    $variationNo = isset($form_state['values']['query_constructor_block']['KEYWORD-'.$btn_id]['VALUES']) ? count($form_state['values']['query_constructor_block']['KEYWORD-'.$btn_id]['VALUES']) : 0;
     $newfield = array(
         '#type' => 'textfield',
         '#required' => TRUE,
         '#title' => 'Variation '.$btn_id.'/'.$variationNo,
     );
 
-    array_push($form_state['user_added']['KWRD-'.$btn_id]['VALUES'], $newfield);
+    array_push($form_state['user_added']['KEYWORD-'.$btn_id]['VALUES'], $newfield);
 
     $form_state['rebuild'] = TRUE;
 }
@@ -152,7 +159,7 @@ function sherlock_searchform_submit($form, &$form_state) {
     //Save all block values\variations to separate array
     $block_values = array();
     foreach ($form_state['values']['query_constructor_block'] as $key => $value) {
-        if (startsWith($key, 'KWRD-')) {
+        if (startsWith($key, 'KEYWORD-')) {
             $block_values[] = $value['VALUES'];
         }
     }
@@ -172,7 +179,7 @@ function sherlock_searchform_submit($form, &$form_state) {
     }
 
     $form_state['values']['AAA'] = $variations_array;
-    sherlock_debug_msg($form_state['values']);
+    sherlock_debug_msg($form_state['user_added']);
 }
 
 function sherlock_debug_msg($x) {
