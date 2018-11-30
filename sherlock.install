@@ -1,37 +1,51 @@
 <?php
-//  function sherlock_schema() {
-//    $schema['sherlock_resources'] = array(
-//      'description' => 'Table for resources and their search invokes.',
-//      'fields' => array(
-//        'id' => array(
-//          'description' => 'The primary identifier for records, int and autoincrement.',
-//          'type' => 'serial',
-//          'unsigned' => TRUE,
-//          'not null' => TRUE,
-//        ),
-//
-//        'base_url' => array(
-//          'description' => 'Base URL for resource. Such as http://olx.ua',
-//          'type' => 'varchar',
-//          'length' => 255,
-//          'not null' => TRUE,
-//        ),
-//
-//        'search_prefix' => array(
-//          'description' => 'Prefix before searching word(s) to invoke search',
-//          'type' => 'varchar',
-//          'length' => 255,
-//          'not null' => TRUE,
-//        ),
-//
-//        'words_glue' => array(
-//          'description' => 'Symbol for concatenating words in one search query, usually + or -.',
-//          'type' => 'char',
-//          'length' => 1,
-//          'not null' => TRUE,
-//        ),
-//      ),
-//    );
-//
-//    return $schema;
-//  }
+  function sherlock_schema() {
+    $schema['sherlock_resources'] = array(
+      'description' => 'Table for resources and their search invokes.',
+      'fields' => array(
+        'id' => array(
+          'description' => 'The primary identifier for records, int and autoincrement.',
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+
+        'display_name' => array(
+          'description' => 'Name of resource, which will be displayed to user',
+          'type' => 'varchar',
+          'length' => 20,
+          'not null' => TRUE,
+        ),
+
+        'search_url' => array(
+          'description' => 'URL of resource with search prefix. Such as https://www.olx.ua/list/q-',
+          'type' => 'varchar',
+          'length' => 100,
+          'not null' => TRUE,
+        ),
+
+        'words_glue' => array(
+          'description' => 'Symbol for concatenating words in one search query, usually + or -.',
+          'type' => 'char',
+          'length' => 1,
+          'not null' => TRUE,
+        ),
+
+        'suffix' => array(
+          'description' => 'Suffix, which will be appended to search query, if present',
+          'type' => 'varchar',
+          'length' => 20,
+        ),
+      ),
+
+      'unique keys' => array(
+        'display_name' => array('display_name'),
+        'search_url' => array('search_url'),
+      ),
+
+      'primary key' => array('id'),
+    );
+
+    return $schema;
+  }
+  
