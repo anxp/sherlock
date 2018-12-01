@@ -48,4 +48,31 @@
 
     return $schema;
   }
-  
+
+  function sherlock_install() {
+    $preinstalled_resources = array(
+      array(
+        'display_name' => 'OLX',
+        'search_url' => 'https://www.olx.ua/list/q-',
+        'words_glue' => '-',
+      ),
+      array(
+        'display_name' => 'Besplatka',
+        'search_url' => 'https://besplatka.ua/all/q-',
+        'words_glue' => '+',
+      ),
+      array(
+        'display_name' => 'SkyLots',
+        'search_url' => 'https://skylots.org/search.php?search=',
+        'words_glue' => '+',
+      ),
+    );
+
+    $query = db_insert('sherlock_resources')->fields(array('display_name', 'search_url', 'words_glue',));
+
+    foreach ($preinstalled_resources as $resource) {
+      $query->values($resource);
+    }
+
+    $query->execute();
+  }
