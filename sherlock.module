@@ -18,58 +18,69 @@ function sherlock_searchform($form, &$form_state) {
     $form['#prefix'] = '<div id="sherlock-search-form">';
     $form['#suffix'] = '</div>';
 
-    //TODO: avoid harcoding resources and fetch them from DB:
-    $form['resources_chooser'] = array(
-        '#type' => 'checkboxes',
-        '#options' => drupal_map_assoc(array('OLX', 'Skylots', 'Besplatka')),
-        '#title' => 'Choose flea-markets websites to search on',
-    );
+  $resources_list = db_select('sherlock_resources', 'shr')
+    ->fields('shr', array('display_name', 'base_url'))
+    ->execute()
+    ->fetchAllAssoc('display_name');
 
-    $form['query_constructor_block'] = array(
-        '#type' => 'fieldset',
-        '#title' => '',
-        '#collapsible' => FALSE,
-        '#collapsed' => FALSE,
-    );
+  sherlock_debug_msg($resources_list);
 
-    if(!isset($form_state['user_added'])) {
-        new_block($form_state);
+  $formatted_list = array();
+  foreach ($resources_list as $key => $value) {
+    $formatted_list[$key] = '<a target="_blank" href="' . $value->base_url . '">' . $value->display_name . '</a>';
+  }
+
+  $form['resources_chooser'] = array(
+    '#type' => 'checkboxes',
+    '#options' => $formatted_list,
+    '#title' => 'Choose flea-markets websites to search on',
+  );
+
+  $form['query_constructor_block'] = array(
+    '#type' => 'fieldset',
+    '#title' => '',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  );
+
+  if(!isset($form_state['user_added'])) {
+    new_block($form_state);
+  }
+
+  if(isset($form_state['user_added'])) {
+    foreach ($form_state['user_added'] as $key => $value) {
+      $form['query_constructor_block'][$key] = $value;
     }
+  }
 
-    if(isset($form_state['user_added'])) {
-        foreach ($form_state['user_added'] as $key => $value) {
-            $form['query_constructor_block'][$key] = $value;
-        }
-    }
+  $form['btn_addterm'] = array(
+    '#type' => 'submit',
+    '#value' => 'Add Term',
+    '#name' => 'btn_addterm',
+    '#submit' => array(
+      'btn_addterm_handler',
+    ),
+    '#ajax' => array(
+      'callback' => 'updatedform_return',
+    ),
+  );
 
-    $form['btn_addterm'] = array(
-        '#type' => 'submit',
-        '#value' => 'Add Term',
-        '#name' => 'btn_addterm',
-        '#submit' => array(
-            'btn_addterm_handler',
-        ),
-        '#ajax' => array(
-            'callback' => 'updatedform_return',
-        ),
-    );
+  $form['btn_submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Save',
+    '#name' => 'btn_submit',
+  );
 
-    $form['btn_submit'] = array(
-        '#type' => 'submit',
-        '#value' => 'Save',
-        '#name' => 'btn_submit',
-    );
+  $form['btn_reset'] = array(
+    '#type' => 'submit',
+    '#value' => 'Reset Form',
+    '#name' => 'btn_reset',
+    '#submit' => array(
+      'btn_reset_handler',
+    ),
+  );
 
-    $form['btn_reset'] = array(
-        '#type' => 'submit',
-        '#value' => 'Reset Form',
-        '#name' => 'btn_reset',
-        '#submit' => array(
-            'btn_reset_handler',
-        ),
-    );
-
-    return $form;
+  return $form;
 }
 
 function new_block(&$form_state) {
