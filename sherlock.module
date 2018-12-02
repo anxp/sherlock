@@ -14,16 +14,15 @@ function sherlock_menu() {
 }
 
 function sherlock_searchform($form, &$form_state) {
-    $form['#tree'] = TRUE;
-    $form['#prefix'] = '<div id="sherlock-search-form">';
-    $form['#suffix'] = '</div>';
+  $form['#tree'] = TRUE;
+  $form['#prefix'] = '<div id="sherlock-search-form">';
+  $form['#suffix'] = '</div>';
 
+  //Get actual list of flea market resources from DB
   $resources_list = db_select('sherlock_resources', 'shr')
     ->fields('shr', array('display_name', 'base_url'))
     ->execute()
     ->fetchAllAssoc('display_name');
-
-  sherlock_debug_msg($resources_list);
 
   $formatted_list = array();
   foreach ($resources_list as $key => $value) {
@@ -52,6 +51,11 @@ function sherlock_searchform($form, &$form_state) {
       $form['query_constructor_block'][$key] = $value;
     }
   }
+
+  $form['dscr_chk'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Search not only in titles, but in descriptions too (if resource supports).',
+  );
 
   $form['btn_addterm'] = array(
     '#type' => 'submit',
@@ -189,8 +193,8 @@ function sherlock_searchform_submit($form, &$form_state) {
         }
     }
 
-    $form_state['values']['AAA'] = $variations_array;
-    sherlock_debug_msg($form_state['user_added']);
+    //$form_state['values']['AAA'] = $variations_array;
+    sherlock_debug_msg($form_state['values']);
 }
 
 function sherlock_debug_msg($x) {
