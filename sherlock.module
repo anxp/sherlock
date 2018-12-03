@@ -179,22 +179,52 @@ function sherlock_searchform_submit($form, &$form_state) {
         }
     }
 
-    $variations_array = array();
-    $variations_array = array_shift($block_values);
-    while (!empty($block_values)) {
-        $array_A = $variations_array;
-        $variations_array = array();
-        $array_B = array_shift($block_values);
+    sherlock_debug_msg(generate_all_possible_strings($block_values, 'PREFIX', '+', 'SUFFIX'));
 
-        foreach ($array_A as $value_A) {
-            foreach ($array_B as $value_B) {
-                $variations_array[] = $value_A.$value_B;
-            }
-        }
+}
+
+function generate_all_possible_strings($block_values, $prefix, $glue, $suffix='') {
+  $block_values_local = $block_values;
+
+  //Trim values of input array for the case if user left space at left or at right:
+  foreach ($block_values_local as &$value) {
+    foreach ($value as &$subvalue) {
+      $subvalue = trim($subvalue);
     }
+  }
+  unset ($value);
+  unset ($subvalue);
 
-    //$form_state['values']['AAA'] = $variations_array;
-    sherlock_debug_msg($form_state['values']);
+  $variations_array = array();
+  $variations_array = array_shift($block_values_local);
+  while (!empty($block_values_local)) {
+    $array_A = $variations_array;
+    $variations_array = array();
+    $array_B = array_shift($block_values_local);
+
+    foreach ($array_A as $value_A) {
+      foreach ($array_B as $value_B) {
+        $variations_array[] = $value_A.$glue.$value_B;
+      }
+    }
+  }
+
+  //If spaces are present -> replace them with 'glue' symbol
+  foreach ($variations_array as &$value) {
+    $value = preg_replace('/\s+/', $glue, $value);
+  }
+  unset($value);
+
+  //Make shure that all strings in array are unique:
+  $variations_array = array_unique($variations_array);
+
+  //Add prefix (usually address of the site and search invokation part like https://www.olx.ua/list/q-) and suffix (if available for this website)
+  foreach ($variations_array as &$value) {
+    $value = $prefix.$value.$suffix;
+  }
+  unset($value);
+
+  return $variations_array;
 }
 
 function sherlock_debug_msg($x) {
