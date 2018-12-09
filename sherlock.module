@@ -20,10 +20,11 @@ function sherlock_searchform($form, &$form_state) {
 
   //Get actual list of flea market resources from DB
   $resources_list = db_select('sherlock_resources', 'shr')
-    ->fields('shr', array('display_name', 'base_url'))
+    ->fields('shr', array('display_name', 'base_url',))
     ->execute()
     ->fetchAllAssoc('display_name');
 
+  //TODO: maybe this output better to do with theme function and template file?
   $formatted_list = array();
   foreach ($resources_list as $key => $value) {
     $formatted_list[$key] = '<a target="_blank" href="' . $value->base_url . '">' . $value->display_name . '</a>';
@@ -52,6 +53,8 @@ function sherlock_searchform($form, &$form_state) {
     }
   }
 
+  //By default, search performs only in headers, but some resources (OLX and Skylots, but not Besplatka) also supports
+  //search in body. Technically, it adds specific suffix to URL.
   $form['dscr_chk'] = array(
     '#type' => 'checkbox',
     '#title' => 'Search not only in titles, but in descriptions too (if resource supports).',
@@ -168,19 +171,40 @@ function btn_reset_handler($form, &$form_state) {
 }
 
 function sherlock_searchform_submit($form, &$form_state) {
-    $pressed_btn_name = $form_state['triggering_element']['#name'];
-    if ($pressed_btn_name != 'btn_submit') {return;}
+  $pressed_btn_name = $form_state['triggering_element']['#name'];
+  if ($pressed_btn_name != 'btn_submit') {return;}
 
-    //Save all block values\variations to separate array
-    $block_values = array();
-    foreach ($form_state['values']['query_constructor_block'] as $key => $value) {
-        if (startsWith($key, 'KEYWORD-')) {
-            $block_values[] = $value['VALUES'];
-        }
+  //Get flag which indicates - search title only or body too:
+  $check_description_too = ((int) $form_state['values']['dscr_chk']) === 0 ? FALSE : TRUE;
+
+  //Save all block values\variations to separate array
+  $block_values = array();
+  foreach ($form_state['values']['query_constructor_block'] as $key => $value) {
+    if (startsWith($key, 'KEYWORD-')) {
+      $block_values[] = $value['VALUES']; //Each value of $block_values is ARRAY with combinations of one given keyword (like sony, soni).
     }
+  }
 
-    sherlock_debug_msg(generate_all_possible_strings($block_values, 'PREFIX', '+', 'SUFFIX'));
+  //Get list of all resources and their settings from DB.
+  $resources_list = db_select('sherlock_resources', 'shr')
+    ->fields('shr', array('display_name', 'base_url', 'search_url', 'words_glue', 'sfx_dscr_chk'))
+    ->execute()
+    ->fetchAllAssoc('display_name');
 
+  //Array with all search URLs for all user-specified resources. This collection of URL we will use to cURL each of them at the next step.
+  //All values are splitted by nested arrays. Keys to nested arrays are names of the resources.
+  $constructed_urls_collection = array();
+
+  foreach ($form_state['values']['resources_chooser'] as $key => $value) {
+    if ($value !== 0) { //we take into consideration only checked resources
+      $prefix = $resources_list[$key] -> search_url;
+      $glue = $resources_list[$key] -> words_glue;
+      $suffix = $check_description_too ? $resources_list[$key] -> sfx_dscr_chk : '';
+      $constructed_urls_collection[$key] = generate_all_possible_strings($block_values, $prefix, $glue, $suffix);
+    }
+  }
+
+  sherlock_debug_msg($constructed_urls_collection);
 }
 
 function generate_all_possible_strings($block_values, $prefix, $glue, $suffix='') {
