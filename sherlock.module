@@ -86,8 +86,9 @@ function sherlock_searchform($form, &$form_state) {
 
   $form['btn_reset'] = array(
     '#type' => 'submit',
-    '#value' => 'Reset Form',
+    '#value' => 'Reset All',
     '#name' => 'btn_reset',
+    '#limit_validation_errors' => array(), //We don't want validate any errors for this submit button, because this is RESET button!
     '#submit' => array(
       'btn_reset_handler',
     ),
@@ -167,7 +168,6 @@ function btn_addvariation_handler($form, &$form_state) {
     $form_state['rebuild'] = TRUE;
 }
 
-//Consider to delete this functionality, because reset not works...
 function btn_reset_handler($form, &$form_state) {
     $pressed_btn_name = $form_state['triggering_element']['#name'];
     if ($pressed_btn_name != 'btn_reset') {return;}
