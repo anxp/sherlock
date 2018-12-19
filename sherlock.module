@@ -1,9 +1,17 @@
 <?php
+require_once 'fleamarket_classes.php';
+
+define('OLX_NAME', OlxMarket::getMarketName());
+define('OLX_URL', OlxMarket::getBaseURL());
+define('BESPLATKA_NAME', BesplatkaMarket::getMarketName());
+define('BESPLATKA_URL', BesplatkaMarket::getBaseURL());
+define('SKYLOTS_NAME', SkylotsMarket::getMarketName());
+define('SKYLOTS_URL', SkylotsMarket::getBaseURL());
 
 function sherlock_menu() {
     $items = array();
     $items['sherlock'] = array(
-        'title' => 'Search Query Constructor',
+        'title' => 'Sherlock - Let\'s find smth great!',
         'type' => MENU_NORMAL_ITEM,
         'page callback' => 'drupal_get_form',
         'page arguments' => array('sherlock_searchform'),
@@ -18,17 +26,12 @@ function sherlock_searchform($form, &$form_state) {
   $form['#prefix'] = '<div id="sherlock-search-form">';
   $form['#suffix'] = '</div>';
 
-  //Get actual list of flea market resources from DB
-  $resources_list = db_select('sherlock_resources', 'shr')
-    ->fields('shr', array('display_name', 'base_url',))
-    ->execute()
-    ->fetchAllAssoc('display_name');
-
-  //TODO: maybe this output better to do with theme function and template file?
+  //Print out supported flea-markets. TODO: maybe this output better to do with theme function and template file?
   $formatted_list = array();
-  foreach ($resources_list as $key => $value) {
-    $formatted_list[$key] = '<a target="_blank" href="' . $value->base_url . '">' . $value->display_name . '</a>';
-  }
+
+  $formatted_list[OLX_NAME] = OLX_NAME . ' [<a target="_blank" href="' . OLX_URL . '">' . t('Open this market\' website in new tab') . '</a>]';
+  $formatted_list[BESPLATKA_NAME] = BESPLATKA_NAME . ' [<a target="_blank" href="' . BESPLATKA_URL . '">' . t('Open this market\' website in new tab') . '</a>]';
+  $formatted_list[SKYLOTS_NAME] = SKYLOTS_NAME . ' [<a target="_blank" href="' . SKYLOTS_URL . '">' . t('Open this market\' website in new tab') . '</a>]';
 
   $form['resources_chooser'] = array(
     '#type' => 'checkboxes',
@@ -43,10 +46,13 @@ function sherlock_searchform($form, &$form_state) {
     '#collapsed' => FALSE,
   );
 
+  //Don't try to combine next two IFs to one block, they need to be as they written!:
+  //The first:
   if(!isset($form_state['user_added'])) {
     new_block($form_state);
   }
 
+  //The second:
   if(isset($form_state['user_added'])) {
     foreach ($form_state['user_added'] as $key => $value) {
       $form['query_constructor_block'][$key] = $value;
@@ -185,21 +191,21 @@ function sherlock_searchform_submit($form, &$form_state) {
     }
   }
 
-  //Get list of all resources and their settings from DB.
-  $resources_list = db_select('sherlock_resources', 'shr')
-    ->fields('shr', array('display_name', 'base_url', 'search_url', 'words_glue', 'sfx_dscr_chk'))
-    ->execute()
-    ->fetchAllAssoc('display_name');
+  //Now let's build list of all resources and their settings. Settings we can get as corresponding class static properties.
+  $resources_list = array();
+  $resources_list[OLX_NAME] = new OlxMarket();
+  $resources_list[BESPLATKA_NAME] = new BesplatkaMarket();
+  $resources_list[SKYLOTS_NAME] = new SkylotsMarket();
 
   //Array with all search URLs for all user-specified resources. This collection of URL we will use to cURL each of them at the next step.
   //All values are splitted by nested arrays. Keys to nested arrays are names of the resources.
   $constructed_urls_collection = array();
 
-  foreach ($form_state['values']['resources_chooser'] as $key => $value) {
-    if ($value !== 0) { //we take into consideration only checked resources
-      $prefix = $resources_list[$key] -> search_url;
-      $glue = $resources_list[$key] -> words_glue;
-      $suffix = $check_description_too ? $resources_list[$key] -> sfx_dscr_chk : '';
+  foreach ($form_state['values']['resources_chooser'] as $key => $value) { //$key here is flea market name, like OLX, Besplatka, SkyLots
+    if ($value !== 0) { //we take into consideration only checked resources, if checkbox unchecked its value == 0
+      $prefix = $resources_list[$key]::getSearchURL();
+      $glue = $resources_list[$key]::getWordsGlue();
+      $suffix = $check_description_too ? $resources_list[$key]::getSuffixDescrChk() : '';
       $constructed_urls_collection[$key] = generate_all_possible_strings($block_values, $prefix, $glue, $suffix);
     }
   }
@@ -241,6 +247,9 @@ function generate_all_possible_strings($block_values, $prefix, $glue, $suffix=''
 
   //Make shure that all strings in array are unique:
   $variations_array = array_unique($variations_array);
+
+  //Reset indexing to 0, 1, 2, 3, 4 ... , because if array_unique() deleted some values, we will have missing indexes:
+  $variations_array = array_values($variations_array);
 
   //Add prefix (usually address of the site and search invokation part like https://www.olx.ua/list/q-) and suffix (if available for this website)
   foreach ($variations_array as &$value) {

@@ -1,5 +1,6 @@
-name = Sherlock (The Flea-Market Digger)
-description = Flea-market digger
+name = Sherlock
+description = Sherlock is the flea-market digger robot. Currently it supports OLX, SkyLots and Besplatka.
 core = 7.x
 php = 5.6
-version = "0.1"
+version = "7.x-0.1"
+
