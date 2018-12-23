@@ -1,5 +1,6 @@
 <?php
 require_once 'fleamarket_classes.php';
+require_once 'sherlock_core_functions.php';
 
 define('OLX_NAME', OlxMarket::getMarketName());
 define('OLX_URL', OlxMarket::getBaseURL());
@@ -9,176 +10,177 @@ define('SKYLOTS_NAME', SkylotsMarket::getMarketName());
 define('SKYLOTS_URL', SkylotsMarket::getBaseURL());
 
 function sherlock_menu() {
-    $items = array();
-    $items['sherlock'] = array(
-        'title' => 'Sherlock - Let\'s find smth great!',
-        'type' => MENU_NORMAL_ITEM,
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array('sherlock_searchform'),
-        'access callback' => TRUE,
-    );
+  $items = array();
 
-    return $items;
+  $items['sherlock'] = array(
+    'title' => 'Sherlock - Fleamarket Digger.',
+    'type' => MENU_NORMAL_ITEM,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('sherlock_searchform'),
+    'access callback' => TRUE,
+  );
+
+  return $items;
 }
 
 function sherlock_searchform($form, &$form_state) {
+  //If form is just created -> we will be on the first step. If user already explored the form -> get current step.
+  $step = (isset($form_state['storage']['step']) && !empty($form_state['storage']['step'])) ? intval($form_state['storage']['step']) : 1;
+
   $form['#tree'] = TRUE;
   $form['#prefix'] = '<div id="sherlock-search-form">';
   $form['#suffix'] = '</div>';
 
-  //Print out supported flea-markets. TODO: maybe this output better to do with theme function and template file?
-  $formatted_list = array();
-
-  $formatted_list[OLX_NAME] = OLX_NAME . ' [<a target="_blank" href="' . OLX_URL . '">' . t('Open this market\' website in new tab') . '</a>]';
-  $formatted_list[BESPLATKA_NAME] = BESPLATKA_NAME . ' [<a target="_blank" href="' . BESPLATKA_URL . '">' . t('Open this market\' website in new tab') . '</a>]';
-  $formatted_list[SKYLOTS_NAME] = SKYLOTS_NAME . ' [<a target="_blank" href="' . SKYLOTS_URL . '">' . t('Open this market\' website in new tab') . '</a>]';
-
-  $form['resources_chooser'] = array(
-    '#type' => 'checkboxes',
-    '#options' => $formatted_list,
-    '#title' => 'Choose flea-markets websites to search on',
+  $form['current-step-title-wrapper'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array('current-step-title-wrapper'),
+    ),
   );
 
-  $form['query_constructor_block'] = array(
-    '#type' => 'fieldset',
-    '#title' => '',
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
+  $form['current-step-title-wrapper']['title'] = array(
+    '#markup' => '<h3>'.get_form_title($step).'</h3>',
   );
 
-  //Don't try to combine next two IFs to one block, they need to be as they written!:
-  //The first:
-  if(!isset($form_state['user_added'])) {
-    new_block($form_state);
+  //Depending on which step we are on, show corresponding part of the form:
+  switch ($step) {
+    //Show part of the form for step 1:
+    case 1:
+      //Print out supported flea-markets. TODO: maybe this output better to do with theme function and template file?
+      $formatted_list = array();
+
+      $formatted_list[OLX_NAME] = OLX_NAME . ' [<a target="_blank" href="' . OLX_URL . '">' . t('Open this market\' website in new tab') . '</a>]';
+      $formatted_list[BESPLATKA_NAME] = BESPLATKA_NAME . ' [<a target="_blank" href="' . BESPLATKA_URL . '">' . t('Open this market\' website in new tab') . '</a>]';
+      $formatted_list[SKYLOTS_NAME] = SKYLOTS_NAME . ' [<a target="_blank" href="' . SKYLOTS_URL . '">' . t('Open this market\' website in new tab') . '</a>]';
+
+      $form['resources_chooser'] = array(
+        '#type' => 'checkboxes',
+        '#options' => $formatted_list,
+        '#title' => 'Choose flea-markets websites to search on',
+      );
+
+      $form['query_constructor_block'] = array(
+        '#type' => 'container',
+        '#attributes' => array(
+          'class' => array('query_constructor_block'),
+        ),
+      );
+
+      //Don't try to combine next two IFs to one block, they need to be as they written!:
+      //The first:
+      if(!isset($form_state['user_added'])) {
+        new_block($form_state);
+      }
+
+      //The second:
+      if(isset($form_state['user_added'])) {
+        foreach ($form_state['user_added'] as $key => $value) {
+          $form['query_constructor_block'][$key] = $value;
+        }
+      }
+
+      //By default, search performs only in headers, but some resources (OLX and Skylots, but not Besplatka) also supports
+      //search in body. Technically, it adds specific suffix to URL.
+      $form['dscr_chk'] = array(
+        '#type' => 'checkbox',
+        '#title' => 'Search not only in titles, but in descriptions too (if resource supports).',
+      );
+
+      //Create a DIV wrapper for button(s) - according to Drupal 7 best practices recommendations:
+      $form['first_step_buttons_wrapper'] = array('#type' => 'actions');
+
+      //...and three main controls buttons () in this wrapper:
+      $form['first_step_buttons_wrapper']['btn_addterm'] = array(
+        '#type' => 'submit',
+        '#value' => 'Add Term',
+        '#name' => 'btn_addterm',
+        '#submit' => array(
+          'btn_addterm_handler',
+        ),
+        '#ajax' => array(
+          'callback' => 'updatedform_return',
+        ),
+      );
+
+      $form['first_step_buttons_wrapper']['btn_preview'] = array(
+        '#type' => 'submit',
+        '#value' => 'Preview Results',
+        '#name' => 'btn_preview',
+        '#submit' => array(
+          'btn_preview_handler',
+        ),
+      );
+
+      $form['first_step_buttons_wrapper']['btn_reset'] = array(
+        '#type' => 'submit',
+        '#value' => 'Reset All',
+        '#name' => 'btn_reset',
+        '#limit_validation_errors' => array(), //We don't want validate any errors for this submit button, because this is RESET button!
+        '#submit' => array(
+          'btn_reset_handler',
+        ),
+      );
+
+      break;
+
+    //Show part of the form for step 2:
+    case 2:
+      foreach ($form_state['values']['resources_chooser'] as $key => $value) {
+        //Let's create div-container for every checked resource, because we need place where to output parse result
+        if ($value !== 0) {
+          $form[$value] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+              'class' => array(strtolower($value).'-output-block'),
+            ),
+          );
+        }
+      }
+      break;
   }
-
-  //The second:
-  if(isset($form_state['user_added'])) {
-    foreach ($form_state['user_added'] as $key => $value) {
-      $form['query_constructor_block'][$key] = $value;
-    }
-  }
-
-  //By default, search performs only in headers, but some resources (OLX and Skylots, but not Besplatka) also supports
-  //search in body. Technically, it adds specific suffix to URL.
-  $form['dscr_chk'] = array(
-    '#type' => 'checkbox',
-    '#title' => 'Search not only in titles, but in descriptions too (if resource supports).',
-  );
-
-  $form['btn_addterm'] = array(
-    '#type' => 'submit',
-    '#value' => 'Add Term',
-    '#name' => 'btn_addterm',
-    '#submit' => array(
-      'btn_addterm_handler',
-    ),
-    '#ajax' => array(
-      'callback' => 'updatedform_return',
-    ),
-  );
-
-  $form['btn_submit'] = array(
-    '#type' => 'submit',
-    '#value' => 'Save',
-    '#name' => 'btn_submit',
-  );
-
-  $form['btn_reset'] = array(
-    '#type' => 'submit',
-    '#value' => 'Reset All',
-    '#name' => 'btn_reset',
-    '#limit_validation_errors' => array(), //We don't want validate any errors for this submit button, because this is RESET button!
-    '#submit' => array(
-      'btn_reset_handler',
-    ),
-  );
 
   return $form;
 }
 
-function new_block(&$form_state) {
-    $num_elements = isset($form_state['user_added']) ? count($form_state['user_added']) : 0;
-
-    $form_state['user_added']['KEYWORD-'.$num_elements] = array(
-        '#type' => 'fieldset',
-        '#title' => 'KEYWORD-'.$num_elements,
-        '#collapsible' => FALSE,
-        '#collapsed' => FALSE,
-    );
-
-    //This is nested block for variation values only
-    $form_state['user_added']['KEYWORD-'.$num_elements]['VALUES'] = array(
-        '#type' => 'fieldset',
-        '#collapsible' => FALSE,
-        '#collapsed' => FALSE,
-    );
-
-    $form_state['user_added']['KEYWORD-'.$num_elements]['VALUES'][0] = array(
-        '#type' => 'textfield',
-        '#required' => TRUE,
-        '#title' => 'Variation '.$num_elements.'/'.'0',
-    );
-
-    $form_state['user_added']['KEYWORD-'.$num_elements]['btn_addvariation-'.$num_elements] = array(
-        '#type' => 'submit',
-        '#value' => 'Add Variation',
-        '#name' => 'btn_addvariation-'.$num_elements,
-        '#submit' => array(
-            'btn_addvariation_handler',
-        ),
-        '#ajax' => array(
-            'callback' => 'updatedform_return',
-        ),
-    );
-}
-
-function updatedform_return($form, $form_state) {
-    $commands = array();
-    $commands[] = ajax_command_replace('#sherlock-search-form', drupal_render($form));
-    return array(
-        '#type' => 'ajax',
-        '#commands' => $commands,
-    );
-}
+//========================================= HANDLERS FOR ALL FORM BUTTONS ==============================================
 
 function btn_addterm_handler($form, &$form_state) {
-    $pressed_btn_name = $form_state['triggering_element']['#name'];
-    if ($pressed_btn_name != 'btn_addterm') {return;}
+  $pressed_btn_name = $form_state['triggering_element']['#name'];
+  if ($pressed_btn_name != 'btn_addterm') {return;}
 
-    new_block($form_state);
+  new_block($form_state);
 
-    $form_state['rebuild'] = TRUE;
+  $form_state['rebuild'] = TRUE;
 }
 
 function btn_addvariation_handler($form, &$form_state) {
-    $pressed_btn_name = $form_state['triggering_element']['#name'];
-    if (!((bool) strstr($pressed_btn_name, 'btn_addvariation'))) {return;}
+  $pressed_btn_name = $form_state['triggering_element']['#name'];
+  if (!((bool) strstr($pressed_btn_name, 'btn_addvariation'))) {return;}
 
-    $btn_id = (int) explode('-', $pressed_btn_name)[1];
-    $variationNo = isset($form_state['values']['query_constructor_block']['KEYWORD-'.$btn_id]['VALUES']) ? count($form_state['values']['query_constructor_block']['KEYWORD-'.$btn_id]['VALUES']) : 0;
-    $newfield = array(
-        '#type' => 'textfield',
-        '#required' => TRUE,
-        '#title' => 'Variation '.$btn_id.'/'.$variationNo,
-    );
+  $btn_id = (int) explode('-', $pressed_btn_name)[1];
+  $variationNo = isset($form_state['values']['query_constructor_block']['KEYWORD-'.$btn_id]['VALUES']) ? count($form_state['values']['query_constructor_block']['KEYWORD-'.$btn_id]['VALUES']) : 0;
+  $newfield = array(
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#title' => 'Variation '.$btn_id.'/'.$variationNo,
+  );
 
-    array_push($form_state['user_added']['KEYWORD-'.$btn_id]['VALUES'], $newfield);
+  array_push($form_state['user_added']['KEYWORD-'.$btn_id]['VALUES'], $newfield);
 
-    $form_state['rebuild'] = TRUE;
+  $form_state['rebuild'] = TRUE;
 }
 
 function btn_reset_handler($form, &$form_state) {
-    $pressed_btn_name = $form_state['triggering_element']['#name'];
-    if ($pressed_btn_name != 'btn_reset') {return;}
+  $pressed_btn_name = $form_state['triggering_element']['#name'];
+  if ($pressed_btn_name != 'btn_reset') {return;}
 
-    unset ($form_state['user_added']);
-    $form_state['rebuild'] = FALSE;
+  unset ($form_state['user_added']);
+  $form_state['rebuild'] = FALSE;
 }
 
-function sherlock_searchform_submit($form, &$form_state) {
+function btn_preview_handler($form, &$form_state) {
   $pressed_btn_name = $form_state['triggering_element']['#name'];
-  if ($pressed_btn_name != 'btn_submit') {return;}
+  if ($pressed_btn_name != 'btn_preview') {return;}
 
   //Get flag which indicates - search title only or body too:
   $check_description_too = ((int) $form_state['values']['dscr_chk']) === 0 ? FALSE : TRUE;
@@ -210,73 +212,78 @@ function sherlock_searchform_submit($form, &$form_state) {
     }
   }
 
-  sherlock_debug_msg($constructed_urls_collection);
+  $form_state['constructed_urls_collection'] = $constructed_urls_collection;
+  //$form_state['redirect'] = 'sherlock/preview-results';
+  $form_state['storage']['step'] = 2;
+  $form_state['rebuild'] = TRUE;
 }
 
-function generate_all_possible_strings($block_values, $prefix, $glue, $suffix='') {
-  $block_values_local = $block_values;
+//========================================= OTHERS FORM ROUTINE FUNCTIONS ==============================================
 
-  //Trim values of input array for the case if user left space at left or at right:
-  foreach ($block_values_local as &$value) {
-    foreach ($value as &$subvalue) {
-      $subvalue = trim($subvalue);
-    }
-  }
-  unset ($value);
-  unset ($subvalue);
+function new_block(&$form_state) {
+  $num_elements = isset($form_state['user_added']) ? count($form_state['user_added']) : 0;
 
-  $variations_array = array();
-  $variations_array = array_shift($block_values_local);
-  while (!empty($block_values_local)) {
-    $array_A = $variations_array;
-    $variations_array = array();
-    $array_B = array_shift($block_values_local);
+  $form_state['user_added']['KEYWORD-'.$num_elements] = array(
+    '#type' => 'fieldset',
+    '#title' => 'KEYWORD-'.$num_elements,
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  );
 
-    foreach ($array_A as $value_A) {
-      foreach ($array_B as $value_B) {
-        $variations_array[] = $value_A.$glue.$value_B;
-      }
-    }
-  }
+  //This is nested block\container for variation values only (with a view to separate values from button)
+  $form_state['user_added']['KEYWORD-'.$num_elements]['VALUES'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  );
 
-  //If spaces are present -> replace them with 'glue' symbol
-  foreach ($variations_array as &$value) {
-    $value = preg_replace('/\s+/', $glue, $value);
-  }
-  unset($value);
+  $form_state['user_added']['KEYWORD-'.$num_elements]['VALUES'][0] = array(
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#title' => 'Variation '.$num_elements.'/'.'0',
+  );
 
-  //Make shure that all strings in array are unique:
-  $variations_array = array_unique($variations_array);
+  //Create new DIV wrapper for Add Variation button (according to Drupal 7 best practices recommendations):
+  $form_state['user_added']['KEYWORD-'.$num_elements]['add_variation_button_wrapper'] = array('#type' => 'actions');
 
-  //Reset indexing to 0, 1, 2, 3, 4 ... , because if array_unique() deleted some values, we will have missing indexes:
-  $variations_array = array_values($variations_array);
-
-  //Add prefix (usually address of the site and search invokation part like https://www.olx.ua/list/q-) and suffix (if available for this website)
-  foreach ($variations_array as &$value) {
-    $value = $prefix.$value.$suffix;
-  }
-  unset($value);
-
-  return $variations_array;
+  //...and new button inside this wrapper:
+  $form_state['user_added']['KEYWORD-'.$num_elements]['add_variation_button_wrapper']['btn_addvariation-'.$num_elements] = array(
+    '#type' => 'submit',
+    '#value' => 'Add Variation',
+    '#name' => 'btn_addvariation-'.$num_elements,
+    '#submit' => array(
+      'btn_addvariation_handler',
+    ),
+    '#ajax' => array(
+      'callback' => 'updatedform_return',
+    ),
+  );
 }
 
-function sherlock_debug_msg($x) {
-    drupal_set_message('<pre>'.print_r($x, true).'</pre>');
+function updatedform_return($form, $form_state) {
+  $commands = array();
+  $commands[] = ajax_command_replace('#sherlock-search-form', drupal_render($form));
+  return array(
+    '#type' => 'ajax',
+    '#commands' => $commands,
+  );
 }
 
-//Some routine functions copypasted from stackoverflow :)
-function startsWith($haystack, $needle)
-{
-    $length = strlen($needle);
-    return (substr($haystack, 0, $length) === $needle);
-}
+//We have a multistep form, so we need different titles for every step. This function returns title depends on current step:
+function get_form_title(int $step) {
+  $title = '';
+  switch ($step) {
+    case 1:
+      $title = 'Step 1: Make a search query.';
+      break;
 
-function endsWith($haystack, $needle)
-{
-    $length = strlen($needle);
-    if ($length == 0) {
-        return true;
-    }
+    case 2:
+      $title = 'Step 2: Preview results.';
+      break;
 
-    return (substr($haystack, -$length) === $needle);
+    default:
+      $title = 'No title for this step.';
+  }
+
+  return $title;
 }
