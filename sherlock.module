@@ -114,6 +114,9 @@ function sherlock_searchform($form, &$form_state) {
         '#type' => 'submit',
         '#value' => 'Preview Results',
         '#name' => 'btn_preview',
+        '#validate' => array(
+          'btn_preview_validate_handler'
+        ),
         '#submit' => array(
           'btn_preview_handler',
         ),
@@ -214,6 +217,20 @@ function btn_reset_handler($form, &$form_state) {
 
   unset ($form_state['user_added']);
   $form_state['rebuild'] = FALSE;
+}
+
+function btn_preview_validate_handler($form, &$form_state) {
+  $resources = $form_state['values']['resources_chooser'];
+  $some_resources_selected = FALSE;
+  foreach ($resources as $value) {
+    if ($value !== 0) {
+      $some_resources_selected = TRUE;
+      break;
+    }
+  }
+  if (!$some_resources_selected) {
+    form_set_error('resources_chooser', 'Please, select at least one resource where to search.');
+  }
 }
 
 function btn_preview_handler($form, &$form_state) {
