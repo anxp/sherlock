@@ -73,16 +73,20 @@ function btn_preview_handler($form, &$form_state) {
   }
 
   //Now let's build list of all resources and their settings. Settings we can get as corresponding class static properties.
-  $resources_list = array();
-  $resources_list[OLX_NAME] = new OlxMarket();
-  $resources_list[BESPLATKA_NAME] = new BesplatkaMarket();
-  $resources_list[SKYLOTS_NAME] = new SkylotsMarket();
+  $resources_list = [];
+
+  $fleamarket_objects = get_available_fleamarkets(); //See sherlock.module for this function declaration
+
+  foreach ($fleamarket_objects as $object) {
+    $resources_list[$object::getMarketId()] = $object;
+  }
+  unset($object);
 
   //Array with all search URLs for all user-specified resources. This collection of URL we will use to cURL each of them at the next step.
   //All values are splitted by nested arrays. Keys to nested arrays are names of the resources.
   $constructed_urls_collection = array();
 
-  foreach ($form_state['values']['resources_chooser'] as $key => $value) { //$key here is flea market name, like OLX, Besplatka, SkyLots
+  foreach ($form_state['values']['resources_chooser'] as $key => $value) { //$key here is flea market ID, like olx, bsp, skl
     if ($value !== 0) { //we take into consideration only checked resources, if checkbox unchecked its value == 0
       $prefix = $resources_list[$key]::getSearchURL();
       $glue = $resources_list[$key]::getWordsGlue();

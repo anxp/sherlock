@@ -14,8 +14,7 @@ function generate_all_possible_strings($block_values, $prefix, $glue, $suffix=''
       $subvalue = trim($subvalue);
     }
   }
-  unset ($value);
-  unset ($subvalue);
+  unset ($value, $subvalue);
 
   $variations_array = array();
   $variations_array = array_shift($block_values_local);

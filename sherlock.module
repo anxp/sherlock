@@ -4,13 +4,6 @@ require_once 'sherlock_core_functions.inc';
 require_once 'sherlock_ui_form_btn_handlers.inc';
 require_once 'sherlock_themes.inc';
 
-define('OLX_NAME', OlxMarket::getMarketName());
-define('OLX_URL', OlxMarket::getBaseURL());
-define('BESPLATKA_NAME', BesplatkaMarket::getMarketName());
-define('BESPLATKA_URL', BesplatkaMarket::getBaseURL());
-define('SKYLOTS_NAME', SkylotsMarket::getMarketName());
-define('SKYLOTS_URL', SkylotsMarket::getBaseURL());
-
 function sherlock_menu() {
   $items = array();
 
@@ -33,4 +26,12 @@ function sherlock_menu() {
   );
 
   return $items;
+}
+
+function get_available_fleamarkets() {
+  return [
+    0 => new OlxMarket(),
+    1 => new BesplatkaMarket(),
+    2 => new SkylotsMarket(),
+  ];
 }

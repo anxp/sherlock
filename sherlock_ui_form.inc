@@ -7,6 +7,8 @@
  */
 
 function sherlock_searchform($form, &$form_state) {
+  $fleamarket_objects = get_available_fleamarkets();
+
   //If form is just created -> we will be on the first step. If user already explored the form -> get current step.
   $step = (isset($form_state['storage']['step']) && !empty($form_state['storage']['step'])) ? intval($form_state['storage']['step']) : 1;
 
@@ -30,11 +32,15 @@ function sherlock_searchform($form, &$form_state) {
     //Show part of the form for step 1:
     case 1:
       //Print out supported flea-markets. TODO: maybe this output better to do with theme function and template file?
-      $formatted_list = array();
+      $formatted_list = [];
 
-      $formatted_list[OLX_NAME] = OLX_NAME . ' [<a target="_blank" href="' . OLX_URL . '">' . t('Open this market\' website in new tab') . '</a>]';
-      $formatted_list[BESPLATKA_NAME] = BESPLATKA_NAME . ' [<a target="_blank" href="' . BESPLATKA_URL . '">' . t('Open this market\' website in new tab') . '</a>]';
-      $formatted_list[SKYLOTS_NAME] = SKYLOTS_NAME . ' [<a target="_blank" href="' . SKYLOTS_URL . '">' . t('Open this market\' website in new tab') . '</a>]';
+      foreach ($fleamarket_objects as $object) {
+        $current_market_id = $object::getMarketId();
+        $current_market_name = $object::getMarketName();
+        $current_market_url = $object::getBaseURL();
+        $formatted_list[$current_market_id] = $current_market_name . ' [<a target="_blank" href="' . $current_market_url . '">' . t('Open this market\' website in new tab') . '</a>]';
+      }
+      unset($object);
 
       $form['resources_chooser'] = array(
         '#type' => 'checkboxes',
@@ -111,6 +117,7 @@ function sherlock_searchform($form, &$form_state) {
 
     //Show part of the form for step 2:
     case 2:
+      sherlock_debug_msg($form_state['values']['resources_chooser']);
       //At first, plug in jQuery AJAX additions for this part of the form:
       $form['#attached']['js'] = array(
         drupal_get_path('module', 'sherlock') . '/ajax_content_request.js',
@@ -125,15 +132,18 @@ function sherlock_searchform($form, &$form_state) {
         drupal_get_path('module', 'sherlock') . '/templates/content_output_tabs.css',
       ];
 
-      //drupal_add_library('system', 'drupal.ajax');
-      //drupal_add_library('system', 'jquery.form');
-
       $output_containers = [];
-      foreach ($form_state['values']['resources_chooser'] as $key => $value) {
+      foreach ($form_state['values']['resources_chooser'] as $market_id) { //'olx', 'bsp', 'skl', or 0 (zero).
         //Let's create div-container for every checked resource, because we need place where to output parse result
-        if ($value !== 0) {
-          $output_containers[$key]['container_title'] = $value;
-          $output_containers[$key]['container_id'] = strtolower($value).'-output-block';
+        if ($market_id !== 0) {
+          foreach ($fleamarket_objects as $object) {
+            if ($object::getMarketId() === $market_id) {
+              $output_containers[$market_id]['market_id'] = $market_id;
+              $output_containers[$market_id]['container_title'] = $object::getMarketName();
+              $output_containers[$market_id]['container_id'] = $market_id.'-output-block';
+            }
+          }
+          unset($object);
         }
       }
 
@@ -143,10 +153,6 @@ function sherlock_searchform($form, &$form_state) {
         '#prefix' => '<div id="preview-results-parent-block">',
         '#suffix' => '</div>',
       );
-
-      $_SESSION['test'] = 'Hello world!';
-
-      sherlock_debug_msg($_SESSION['test']);
 
       break;
   }

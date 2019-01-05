@@ -3,7 +3,7 @@
   <?php $is_this_first_tab = TRUE;
   foreach ($output_containers as $value) {
     $current_tab_title = $value['container_title'];
-    $current_tab_id = strtolower($current_tab_title).'_tab' ?>
+    $current_tab_id = $value['market_id'].'_tab' ?>
 
     <input id="<?php print $current_tab_id ?>" type="radio" name="tabs" <?php $is_this_first_tab ? print 'checked' : print '';  ?>>
     <label for="<?php print $current_tab_id ?>" title="<?php print $current_tab_title ?>"><?php print $current_tab_title ?></label>

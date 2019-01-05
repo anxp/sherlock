@@ -6,14 +6,22 @@
  * Time: 22:01
  */
 class FleaMarket {
-  protected static $marketName = '';
-  protected static $baseURL = '';
+  protected static $marketId = ''; //Three lowercase-letter id of the market
+  protected static $marketName = ''; //Human-readable market name
+  protected static $baseURL = ''; //Base URL, like https://olx.ua without ending '/'
   protected static $searchURL = '';
   protected static $wordsGlue = '';
   protected static $suffixDescrChk = '';
 
   //We don't want to allow making object directly of parent class, because resource-dependent parameters are not correctly set.
   protected function __construct() {
+  }
+
+  /**
+   * @return string
+   */
+  public static function getMarketId() {
+    return static::$marketId;
   }
 
   /**
@@ -53,6 +61,7 @@ class FleaMarket {
 }
 
 class OlxMarket extends FleaMarket {
+  protected static $marketId = 'olx';
   protected static $marketName = 'OLX';
   protected static $baseURL = 'https://www.olx.ua';
   protected static $searchURL = 'https://www.olx.ua/list/q-';
@@ -65,6 +74,7 @@ class OlxMarket extends FleaMarket {
 }
 
 class BesplatkaMarket extends FleaMarket {
+  protected static $marketId = 'bsp';
   protected static $marketName = 'Besplatka';
   protected static $baseURL = 'https://besplatka.ua';
   protected static $searchURL = 'https://besplatka.ua/all/q-';
@@ -77,6 +87,7 @@ class BesplatkaMarket extends FleaMarket {
 }
 
 class SkylotsMarket extends FleaMarket {
+  protected static $marketId = 'skl';
   protected static $marketName = 'SkyLots';
   protected static $baseURL = 'https://skylots.org';
   protected static $searchURL = 'https://skylots.org/search.php?search=';
