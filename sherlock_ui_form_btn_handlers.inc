@@ -72,15 +72,9 @@ function btn_preview_handler($form, &$form_state) {
     }
   }
 
-  //Now let's build list of all resources and their settings. Settings we can get as corresponding class static properties.
+  //Now let's request list of all resources and their settings.
   $resources_list = [];
-
-  $fleamarket_objects = get_available_fleamarkets(); //See sherlock.module for this function declaration
-
-  foreach ($fleamarket_objects as $object) {
-    $resources_list[$object::getMarketId()] = $object;
-  }
-  unset($object);
+  $resources_list = get_available_fleamarkets(TRUE); //See sherlock.module for this function declaration.
 
   //Array with all search URLs for all user-specified resources. This collection of URL we will use to cURL each of them at the next step.
   //All values are splitted by nested arrays. Keys to nested arrays are names of the resources.
