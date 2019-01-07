@@ -13,3 +13,7 @@ function get_demo_content_ajax() {
     '#commands' => $commands,
   );
 }
+
+function get_selected_markets_ajax() {
+  return $_SESSION['sherlock_tmp_storage']['selected_markets'];
+}

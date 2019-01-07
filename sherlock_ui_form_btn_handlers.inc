@@ -79,7 +79,6 @@ function btn_preview_handler($form, &$form_state) {
   //Array with all search URLs for all user-specified resources. This collection of URL we will use to cURL each of them at the next step.
   //All values are splitted by nested arrays. Keys to nested arrays are names of the resources.
   $constructed_urls_collection = array();
-
   foreach ($form_state['values']['resources_chooser'] as $key => $value) { //$key here is flea market ID, like olx, bsp, skl
     if ($value !== 0) { //we take into consideration only checked resources, if checkbox unchecked its value == 0
       $prefix = $resources_list[$key]::getSearchURL();
@@ -88,8 +87,19 @@ function btn_preview_handler($form, &$form_state) {
       $constructed_urls_collection[$key] = generate_all_possible_strings($block_values, $prefix, $glue, $suffix);
     }
   }
-
+  unset($key, $value);
   $form_state['constructed_urls_collection'] = $constructed_urls_collection;
+
+  //Save selected (ONLY SELECTED!) fleamarkets to $_SESSION,
+  //(we'll take them by ajax from there in a moment from frontend, see $items['sherlock/selected-markets'] in sherlock.module):
+  $_SESSION['sherlock_tmp_storage'] = [];
+  foreach ($form_state['values']['resources_chooser'] as $key => $value) {
+    if ($value !== 0) {
+      $_SESSION['sherlock_tmp_storage']['selected_markets'][] = $key;
+    }
+  }
+  unset($key, $value);
+
   //$form_state['redirect'] = 'sherlock/preview-results';
   $form_state['storage']['step'] = 2;
   $form_state['rebuild'] = TRUE;

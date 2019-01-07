@@ -16,6 +16,15 @@ function sherlock_menu() {
     'file' => 'sherlock_ui_form.inc',
   );
 
+  //This endpoint returns (by ajax-request) user selected fleamarkets for further processing
+  $items['sherlock/selected-markets'] = [
+    'type' => MENU_CALLBACK,
+    'page callback' => 'get_selected_markets_ajax',
+    'delivery callback' => 'drupal_json_output', //Because we want pack result in JSON
+    'access callback' => TRUE,
+    'file' => 'sherlock_ajax_callbacks.inc',
+  ];
+
   $items['get_demo_content'] = array(
     'title' => 'Get demo content',
     'page callback' => 'get_demo_content_ajax',
