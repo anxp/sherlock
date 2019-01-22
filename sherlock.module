@@ -3,6 +3,7 @@ require_once 'sherlock_fleamarket_classes.inc';
 require_once 'sherlock_core_functions.inc';
 require_once 'sherlock_ui_form_btn_handlers.inc';
 require_once 'sherlock_themes.inc';
+require_once 'sherlock_ItemSniper.class.php';
 
 function sherlock_menu() {
   $items = array();
@@ -21,6 +22,15 @@ function sherlock_menu() {
     'type' => MENU_CALLBACK,
     'page callback' => 'get_selected_markets_ajax',
     'delivery callback' => 'drupal_json_output', //Because we want pack result in JSON
+    'access callback' => TRUE,
+    'file' => 'sherlock_ajax_callbacks.inc',
+  ];
+
+  //This endpoint returns (by ajax-request) list of results from processing market as JSON
+  $items['sherlock/market-fetch'] = [
+    'type' => MENU_CALLBACK,
+    'page callback' => 'fetch_market_ajax',
+    'delivery callback' => 'drupal_json_output',
     'access callback' => TRUE,
     'file' => 'sherlock_ajax_callbacks.inc',
   ];

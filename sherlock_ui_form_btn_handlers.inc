@@ -88,17 +88,25 @@ function btn_preview_handler($form, &$form_state) {
     }
   }
   unset($key, $value);
-  $form_state['constructed_urls_collection'] = $constructed_urls_collection;
+
+  $_SESSION['sherlock_tmp_storage'] = [];
+  $_SESSION['sherlock_tmp_storage']['constructed_urls_collection'] = $constructed_urls_collection;
 
   //Save selected (ONLY SELECTED!) fleamarkets to $_SESSION,
-  //(we'll take them by ajax from there in a moment from frontend, see $items['sherlock/selected-markets'] in sherlock.module):
-  $_SESSION['sherlock_tmp_storage'] = [];
+  //(we'll take them by ajax from there in a moment from frontend, see $items['sherlock/selected-markets'] endpoint in sherlock.module):
   foreach ($form_state['values']['resources_chooser'] as $key => $value) {
     if ($value !== 0) {
       $_SESSION['sherlock_tmp_storage']['selected_markets'][] = $key;
     }
   }
   unset($key, $value);
+
+  //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- LET'S THE PARTY BEGIN! *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+  //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+  //At this point, we have enough info at $_SESSION['sherlock_tmp_storage'] to start fetch and parsing process:
+  //$_SESSION['sherlock_tmp_storage']['selected_markets'] contains just user-selected markets to fetch,
+  //$_SESSION['sherlock_tmp_storage']['constructed_urls_collection'] contains sub-arrays with collection of search queries for each market.
+  //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 
   //$form_state['redirect'] = 'sherlock/preview-results';
   $form_state['storage']['step'] = 2;
