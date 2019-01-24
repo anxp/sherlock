@@ -69,3 +69,23 @@ function endsWith($haystack, $needle) {
 
   return (substr($haystack, -$length) === $needle);
 }
+
+function sherlock_array_unique_by_field($input_array, $field_to_check) {
+  if (!is_array($input_array)) {return [];}
+
+  $tmp_arr = [];
+  foreach ($input_array as $key => $value) {
+    $tmp_arr[$key] = $value[$field_to_check];
+  }
+  unset($key, $value);
+
+  $tmp_arr = array_unique($tmp_arr);
+
+  $filtered_arr = [];
+  foreach ($tmp_arr as $key => $value) {
+    $filtered_arr[] = $input_array[$key];
+  }
+  unset($key, $value);
+
+  return $filtered_arr;
+}
