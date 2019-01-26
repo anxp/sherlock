@@ -129,7 +129,8 @@ function sherlock_searchform($form, &$form_state) {
       );
 
       $form['#attached']['css'] = [
-        drupal_get_path('module', 'sherlock') . '/templates/content_output_tabs.css',
+        drupal_get_path('module', 'sherlock') . '/templates/sherlock_content_output_tabs.css',
+        drupal_get_path('module', 'sherlock') . '/templates/sherlock_content_output_table.css',
       ];
 
       $output_containers = [];
