@@ -35,15 +35,28 @@
       let rowsNum = response.length;
       let tableContent = new Array(rowsNum);
       for (let i = 0; i < rowsNum; i++) {
+        //Create IMG tag as DOM-element:
+        let img = document.createElement('img');
+        img.src = response[i].thumbnail.trim();
+
+        //Create A tag as DOM-element:
         let a = document.createElement('a');
         a.href = response[i].link.trim();
         a.target = "_blank";
         a.appendChild(document.createTextNode(response[i].title.trim()));
-        tableContent[i] = [a, document.createTextNode(response[i].price.trim())]; //Link in 1st column, price in 2nd.
+
+        //Create price-string as text node:
+        let price = document.createTextNode(response[i].price_value);
+
+        //Create currency-id-string as text node:
+        let currency = document.createTextNode(response[i].price_currency);
+
+        //Create next table row:
+        tableContent[i] = [img, a, price, currency]; //Img in 1st column, link in 2nd column, price in 3rd, curreny in 4th.
       }
 
       //Prepare array with header labels. Label are NOT JUST TEXT! They need to be DOM objects!
-      let headerLabels = [document.createTextNode("Item name"), document.createTextNode("Price")];
+      let headerLabels = [document.createTextNode("Item image"), document.createTextNode("Item name"), document.createTextNode("Price"), document.createTextNode("Curr.")];
 
       //And finally, generate our table:
       let tbl = createTable(tableContent, headerLabels, "sherlock-automatically-generated-table");

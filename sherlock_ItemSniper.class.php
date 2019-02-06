@@ -34,18 +34,22 @@ abstract class ItemSniper {
   //How to find price of given advertisement block. This 'path' is not absolute, but relative to $advertBlockSP ('SP' stands for 'Search Pattern'):
   protected $priceSP = '';
 
+  //How to find link to attached thumbnail image. This 'path' is not absolute, but relative to $advertBlockSP ('SP' stands for 'Search Pattern'):
+  protected $imageAddressSP = '';
+
   //How to find link to next page in webpage with advertisements - search string for phpQuery ('SP' stands for 'Search Pattern'):
   protected $nextPageLinkSP = '';
 
   //$URL - URL to fetch;
   //We do constructor protected, because we want create only objects of child classes.
-  protected function __construct($URL, $pageLimit, $advertBlockSP, $titleSP, $titleLinkSP, $priceSP, $nextPageLinkSP) {
+  protected function __construct($URL, $pageLimit, $advertBlockSP, $titleSP, $titleLinkSP, $priceSP, $imageAddressSP, $nextPageLinkSP) {
     $this->URL = $URL;
     $this->pageLimit = $pageLimit;
     $this->advertBlockSP = $advertBlockSP;
     $this->titleSP = $titleSP;
     $this->titleLinkSP = $titleLinkSP;
     $this->priceSP = $priceSP;
+    $this->imageAddressSP = $imageAddressSP;
     $this->nextPageLinkSP = $nextPageLinkSP;
   }
 
@@ -115,8 +119,8 @@ abstract class ItemSniper {
  * */
 class olx_ItemSniper extends ItemSniper {
 
-  public function __construct($URL, $pageLimit, $advertBlockSP = 'div.offer-wrapper', $titleSP = 'h3', $titleLinkSP = 'h3 > a', $priceSP = 'p.price', $nextPageLinkSP = 'div.pager span.next a') {
-    parent::__construct($URL, $pageLimit, $advertBlockSP, $titleSP, $titleLinkSP, $priceSP, $nextPageLinkSP);
+  public function __construct($URL, $pageLimit, $advertBlockSP = 'div.offer-wrapper', $titleSP = 'h3', $titleLinkSP = 'h3 > a', $priceSP = 'p.price', $imageAddressSP = 'img.fleft', $nextPageLinkSP = 'div.pager span.next a') {
+    parent::__construct($URL, $pageLimit, $advertBlockSP, $titleSP, $titleLinkSP, $priceSP, $imageAddressSP, $nextPageLinkSP);
   }
 
   public function grabItems(): array {
@@ -130,7 +134,12 @@ class olx_ItemSniper extends ItemSniper {
       $offerBlocks = $doc->find($this->advertBlockSP);
       foreach ($offerBlocks as $block) {
         $pq_block = pq($block);
+
+        //Get title of the ad-block:
         $itemTitle = $pq_block->find($this->titleSP)->text();
+
+        //Get address of attached thumbnail:
+        $itemThumbnail = $pq_block->find($this->imageAddressSP)->attr('src');
 
         //We parse link to array and then gather only required parts.
         //For example, usually links from OLX ends with smth like "#1b78919f15;promoted" and we don't need such trash.
@@ -138,11 +147,16 @@ class olx_ItemSniper extends ItemSniper {
         $linkParts = parse_url($itemLink);
         $itemLinkClean = $linkParts['scheme'].'://'.$linkParts['host'].$linkParts['path']; //Link now clean.
 
+        //Get price. At the moment this is 'raw' price, with number and currency ID, like 5 000 грн. We'll parse it later:
         $itemPrice = $pq_block->find($this->priceSP)->text();
 
-        $collectedItems[$cii]['title'] = $itemTitle;
+        $collectedItems[$cii]['title'] = trim($itemTitle);
+        $collectedItems[$cii]['thumbnail'] = $itemThumbnail;
         $collectedItems[$cii]['link'] = $itemLinkClean;
-        $collectedItems[$cii]['price'] = $itemPrice;
+        $collectedItems[$cii]['price_raw'] = trim($itemPrice);
+        $collectedItems[$cii]['price_value'] = (string) preg_replace('/\D/', '', $itemPrice); //Filter out ANYTHING THAT NOT a digit.
+        $price_raw_nospaces = (string) preg_replace('/\s/', '', $itemPrice);
+        $collectedItems[$cii]['price_currency'] = (string) preg_replace('/(\d+)([^0-9]+)(\.)$/', '$2', $price_raw_nospaces); //Filter out digits, leave only currency ID.
         $cii++;
       }
 
