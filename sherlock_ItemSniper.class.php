@@ -139,6 +139,7 @@ class olx_ItemSniper extends ItemSniper {
         $itemTitle = $pq_block->find($this->titleSP)->text();
 
         //Get address of attached thumbnail:
+        $pq_block->find($this->imageAddressSP)->removeAttr('data-src');
         $itemThumbnail = $pq_block->find($this->imageAddressSP)->attr('src');
 
         //We parse link to array and then gather only required parts.
@@ -175,5 +176,11 @@ class olx_ItemSniper extends ItemSniper {
     } while (($url !== '') && $willContinue);
 
     return $collectedItems;
+  }
+}
+
+class bsp_ItemSniper extends olx_ItemSniper {
+  public function __construct($URL, $pageLimit, string $advertBlockSP = 'div.message > div.wrap', string $titleSP = 'div.content > div.title > a', string $titleLinkSP = 'div.content > div.title > a', string $priceSP = 'div.price', string $imageAddressSP = 'img.img-responsive', string $nextPageLinkSP = 'ul.pagination > li.next > a') {
+    parent::__construct($URL, $pageLimit, $advertBlockSP, $titleSP, $titleLinkSP, $priceSP, $imageAddressSP, $nextPageLinkSP);
   }
 }

@@ -37,19 +37,21 @@
       for (let i = 0; i < rowsNum; i++) {
         //Create IMG tag as DOM-element:
         let img = document.createElement('img');
-        img.src = response[i].thumbnail.trim();
+        //TODO: Adjust here to show generic icon, in case if image is not available:
+        img.src = response[i].thumbnail ? response[i].thumbnail.trim() : "https://";
 
         //Create A tag as DOM-element:
         let a = document.createElement('a');
-        a.href = response[i].link.trim();
+        //Check for link existing, if not -> just assign empty string:
+        a.href = response[i].link ? response[i].link.trim() : "https://";
         a.target = "_blank";
         a.appendChild(document.createTextNode(response[i].title.trim()));
 
-        //Create price-string as text node:
-        let price = document.createTextNode(response[i].price_value);
+        //Create price-string as text node, if by some reason field does not exist -> show N/A:
+        let price = response[i].price_value ? document.createTextNode(response[i].price_value) : document.createTextNode("N/A");
 
-        //Create currency-id-string as text node:
-        let currency = document.createTextNode(response[i].price_currency);
+        //Create currency-id-string as text node, if by some reason field does not exist -> show N/A:
+        let currency = response[i].price_currency ? document.createTextNode(response[i].price_currency) : document.createTextNode("N/A");
 
         //Create next table row:
         tableContent[i] = [img, a, price, currency]; //Img in 1st column, link in 2nd column, price in 3rd, curreny in 4th.
