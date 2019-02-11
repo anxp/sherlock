@@ -39,6 +39,7 @@
         let img = document.createElement('img');
         //TODO: Adjust here to show generic icon, in case if image is not available:
         img.src = response[i].thumbnail ? response[i].thumbnail.trim() : "https://";
+        img.width = 150;
 
         //Create A tag as DOM-element:
         let a = document.createElement('a');
