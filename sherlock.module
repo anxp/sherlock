@@ -3,7 +3,14 @@ require_once 'sherlock_fleamarket_classes.inc';
 require_once 'sherlock_core_functions.inc';
 require_once 'sherlock_ui_form_btn_handlers.inc';
 require_once 'sherlock_themes.inc';
-require_once 'sherlock_ItemSniper.class.php';
+require_once 'phpQuery/phpQuery.php';
+
+spl_autoload_register('SherlockClassLoader');
+
+function SherlockClassLoader($className) {
+  $path = drupal_get_path('module', 'sherlock').DIRECTORY_SEPARATOR.'Classes'.DIRECTORY_SEPARATOR;
+  require_once $path.$className.'.class.inc';
+}
 
 function sherlock_menu() {
   $items = array();
