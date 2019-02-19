@@ -89,3 +89,12 @@ function sherlock_array_unique_by_field($input_array, $field_to_check) {
 
   return $filtered_arr;
 }
+
+function sherlock_get_random_string($length) {
+  $characters = 'abcdefghijklmnopqrstuvwxyzABCDERFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+  $randomString = '';
+  for ($i = 0; $i < $length; $i++) {
+    $randomString .= $characters[mt_rand(0, strlen($characters)-1)];
+  }
+  return $randomString;
+}

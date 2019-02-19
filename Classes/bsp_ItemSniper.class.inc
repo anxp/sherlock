@@ -10,7 +10,7 @@
  * They must have prefix with marketId and underscore symbol, like: olx_, bsp_, skl_, with word 'ItemSniper' after prefix: ex.: olx_ItemSniper.
  * This makes possible to create new instances automatically, knowing only marketId.
  * */
-class bsp_ItemSniper extends olx_ItemSniper {
+class bsp_ItemSniper extends ItemSniper {
   public function __construct($URL, $pageLimit, string $advertBlockSP = 'div.message > div.wrap', string $titleSP = 'div.content > div.title > a', string $titleLinkSP = 'div.content > div.title > a', string $priceSP = 'div.price', string $imageAddressSP = 'img.img-responsive', string $nextPageLinkSP = 'head > link.pag_params') {
     parent::__construct($URL, $pageLimit, $advertBlockSP, $titleSP, $titleLinkSP, $priceSP, $imageAddressSP, $nextPageLinkSP);
   }
@@ -21,8 +21,8 @@ class bsp_ItemSniper extends olx_ItemSniper {
 
   protected function getThumbnailAddress(phpQueryObject $phpQueryNode): string {
     //Get address of attached thumbnail. We use value from attribute 'data-src', because 'src' attribute does not exists when raw html received!
-    $thumbAddress = ($phpQueryNode->find($this->imageAddressSP)->attr('data-src')) ? ($phpQueryNode->find($this->imageAddressSP)->attr('data-src')) : '';
-    return $thumbAddress;
+    $thumbAddress = $phpQueryNode->find($this->imageAddressSP)->attr('data-src');
+    return (empty($thumbAddress) ? '' : $thumbAddress);
   }
 
   protected function getItemLink(phpQueryObject $phpQueryNode): string {
