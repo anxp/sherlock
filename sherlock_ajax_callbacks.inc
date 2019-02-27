@@ -56,5 +56,14 @@ function fetch_market_ajax() {
   //and this data we'll return to frontend as JSON.
   $filteredData = sherlock_array_unique_by_field($flattened_arr, 'link');
 
+  //At the very last step - cache images (or use already cached if they are exists):
+  foreach ($filteredData as &$value) {
+    $pic = new Sherlock_FileManager_D7('public://sherlock/img_cache');
+    $picExtUrl = $value['thumbnail'];
+    $locUrl = $pic->loadRemoteFile($picExtUrl)->saveFileManaged_D7()->getLocalFileUrl_D7();
+    $value['thumbnail'] = $locUrl ? $locUrl : '';
+    unset($pic);
+  }
+
   return $filteredData;
 }

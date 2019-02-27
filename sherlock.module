@@ -4,6 +4,7 @@ require_once 'sherlock_core_functions.inc';
 require_once 'sherlock_ui_form_btn_handlers.inc';
 require_once 'sherlock_themes.inc';
 require_once 'phpQuery/phpQuery.php';
+require_once 'Classes/Sherlock_FileManager_D7.class.inc';
 
 spl_autoload_register('SherlockClassLoader');
 
