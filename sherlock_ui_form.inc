@@ -10,27 +10,17 @@ function sherlock_searchform($form, &$form_state) {
   $fleamarket_objects = get_available_fleamarkets();
 
   //If form is just created -> we will be on the first step. If user already explored the form -> get current step.
-  $step = (isset($form_state['storage']['step']) && !empty($form_state['storage']['step'])) ? intval($form_state['storage']['step']) : 1;
+  $step = (isset($form_state['storage']['step'])) ? intval($form_state['storage']['step']) : 1;
 
   $form['#tree'] = TRUE;
   $form['#prefix'] = '<div id="sherlock-search-form">';
   $form['#suffix'] = '</div>';
 
-  $form['current-step-title-wrapper'] = array(
-    '#type' => 'container',
-    '#attributes' => array(
-      'class' => array('current-step-title-wrapper'),
-    ),
-  );
-
-  $form['current-step-title-wrapper']['title'] = array(
-    '#markup' => '<h3>'.get_form_title($step).'</h3>',
-  );
-
   //Depending on which step we are on, show corresponding part of the form:
   switch ($step) {
     //Show part of the form for step 1:
     case 1:
+      drupal_set_title('What are you looking for? Create your perfect search query!');
       //Print out supported flea-markets. TODO: maybe this output better to do with theme function and template file?
       $formatted_list = [];
 
@@ -117,6 +107,7 @@ function sherlock_searchform($form, &$form_state) {
 
     //Show part of the form for step 2:
     case 2:
+      drupal_set_title('Preview and save results.');
       sherlock_debug_msg($form_state['values']['resources_chooser']);
       //At first, plug in jQuery AJAX additions for this part of the form:
       $form['#attached']['js'] = array(
@@ -208,23 +199,4 @@ function updatedform_return($form, $form_state) {
     '#type' => 'ajax',
     '#commands' => $commands,
   );
-}
-
-//We have a multistep form, so we need different titles for every step. This function returns title depends on current step:
-function get_form_title(int $step) {
-  $title = '';
-  switch ($step) {
-    case 1:
-      $title = 'Step 1: Make a search query.';
-      break;
-
-    case 2:
-      $title = 'Step 2: Preview results.';
-      break;
-
-    default:
-      $title = 'No title for this step.';
-  }
-
-  return $title;
 }
