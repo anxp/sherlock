@@ -7,7 +7,7 @@
  */
 
 function sherlock_searchform($form, &$form_state) {
-  $fleamarket_objects = get_available_fleamarkets();
+  $fleamarket_objects = get_available_fleamarkets(TRUE);
 
   //If form is just created -> we will be on the first step. If user already explored the form -> get current step.
   $step = (isset($form_state['storage']['step'])) ? intval($form_state['storage']['step']) : 1;
@@ -105,19 +105,14 @@ function sherlock_searchform($form, &$form_state) {
 
       break;
 
-    //Show part of the form for step 2:
+    // ----- STEP 2. Here we show results and give user ability to save his search for future use. ---------------------
     case 2:
       drupal_set_title('Preview and save results.');
-      sherlock_debug_msg($form_state['values']['resources_chooser']);
       //At first, plug in jQuery AJAX additions for this part of the form:
-      $form['#attached']['js'] = array(
-        drupal_get_path('module', 'sherlock') . '/ajax_content_request.js',
-      );
+      $form['#attached']['js'] = [drupal_get_path('module', 'sherlock') . '/ajax_content_request.js',];
 
       //Second, attach drupal.ajax library, this is the same as do it by function: drupal_add_library('system', 'drupal.ajax');
-      $form['#attached']['library'] = array(
-        array('system', 'drupal.ajax')
-      );
+      $form['#attached']['library'] = [['system', 'drupal.ajax',],];
 
       $form['#attached']['css'] = [
         drupal_get_path('module', 'sherlock') . '/templates/sherlock_content_output_tabs.css',
@@ -127,24 +122,33 @@ function sherlock_searchform($form, &$form_state) {
       $output_containers = [];
       foreach ($form_state['values']['resources_chooser'] as $market_id) { //'olx', 'bsp', 'skl', or 0 (zero).
         //Let's create div-container for every checked resource, because we need place where to output parse result
-        if ($market_id !== 0) {
-          foreach ($fleamarket_objects as $object) {
-            if ($object::getMarketId() === $market_id) {
-              $output_containers[$market_id]['market_id'] = $market_id;
-              $output_containers[$market_id]['container_title'] = $object::getMarketName();
-              $output_containers[$market_id]['container_id'] = $market_id.'-output-block';
-            }
-          }
-          unset($object);
-        }
+        if ($market_id === 0) {continue;}
+        $output_containers[$market_id]['market_id'] = $market_id;
+        $output_containers[$market_id]['container_title'] = $fleamarket_objects[$market_id]::getMarketName();
+        $output_containers[$market_id]['container_id'] = $market_id.'-output-block';
       }
 
-      $form['preview_results_area'] = array(
+      //Prepare associative array with constructed search queries to show to user. Keys of array are normal (not short!) flea-market names.
+      $constructed_urls_collection = [];
+      foreach ($_SESSION['sherlock_tmp_storage']['constructed_urls_collection'] as $key => $value) {
+        $user_friendly_key = $fleamarket_objects[$key]::getMarketName();
+        $constructed_urls_collection[$user_friendly_key] = $value;
+      }
+      unset($key, $value);
+
+      $form['constructed_search_queries'] = [
         '#type' => 'markup',
-        '#markup' => theme('preview_results', array('output_containers' => $output_containers)),
+        '#markup' => theme('show_constructed_queries', ['constructed_queries' => $constructed_urls_collection,]),
+        '#prefix' => '<div id="constructed-queries-block">',
+        '#suffix' => '</div>',
+      ];
+
+      $form['preview_results_area'] = [
+        '#type' => 'markup',
+        '#markup' => theme('preview_results', ['output_containers' => $output_containers,]),
         '#prefix' => '<div id="preview-results-parent-block">',
         '#suffix' => '</div>',
-      );
+      ];
 
       break;
   }
