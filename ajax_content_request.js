@@ -58,8 +58,21 @@
         tableContent[i] = [img, a, price, currency]; //Img in 1st column, link in 2nd column, price in 3rd, curreny in 4th.
       }
 
-      //Prepare array with header labels. Label are NOT JUST TEXT! They need to be DOM objects!
-      let headerLabels = [document.createTextNode("Item image"), document.createTextNode("Item name"), document.createTextNode("Price"), document.createTextNode("Curr.")];
+      //Prepare array with header labels. Label are NOT JUST TEXT! They need to be DOM objects
+      //(so, they need to be created via createElement or createTextNode or smth similar)!
+      let itemImageLabel = document.createElement("h3");
+      itemImageLabel.textContent = "Item image"; //TODO: make this label translatable
+
+      let itemNameLabel = document.createElement("h3");
+      itemNameLabel.textContent = "Item name"; //TODO: make this label translatable
+
+      let itemPriceLabel = document.createElement("h3");
+      itemPriceLabel.textContent = "Price"; //TODO: make this label translatable
+
+      let itemCurrencyLabel = document.createElement("h3");
+      itemCurrencyLabel.textContent = "Curr."; //TODO: make this label translatable
+
+      let headerLabels = [itemImageLabel, itemNameLabel, itemPriceLabel, itemCurrencyLabel];
 
       //And finally, generate our table:
       let tbl = createTable(tableContent, headerLabels, "sherlock-automatically-generated-table");

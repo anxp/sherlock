@@ -108,16 +108,18 @@ function sherlock_searchform($form, &$form_state) {
     // ----- STEP 2. Here we show results and give user ability to save his search for future use. ---------------------
     case 2:
       drupal_set_title('Preview and save results.');
-      //At first, plug in jQuery AJAX additions for this part of the form:
-      $form['#attached']['js'] = [drupal_get_path('module', 'sherlock') . '/ajax_content_request.js',];
 
-      //Second, attach drupal.ajax library, this is the same as do it by function: drupal_add_library('system', 'drupal.ajax');
-      $form['#attached']['library'] = [['system', 'drupal.ajax',],];
+      //Attach JS and CSS for first block - 'List of constructed search queries':
+      $form['#attached']['js'][] = drupal_get_path('module', 'sherlock') . '/templates/sherlock_show_queries.js';
+      $form['#attached']['css'][] = drupal_get_path('module', 'sherlock') . '/templates/sherlock_show_queries.css';
+      //----------------------------------------------------------------------------------------------------------------
 
-      $form['#attached']['css'] = [
-        drupal_get_path('module', 'sherlock') . '/templates/sherlock_content_output_tabs.css',
-        drupal_get_path('module', 'sherlock') . '/templates/sherlock_content_output_table.css',
-      ];
+      //Attach JS and CSS for second block - with tabs and tables for output gathered information:
+      $form['#attached']['js'][] = drupal_get_path('module', 'sherlock') . '/ajax_content_request.js'; //Plug in jQuery AJAX additions for this part of the form.
+      $form['#attached']['library'][] = ['system', 'drupal.ajax',]; //Attach drupal.ajax library, this is the same as do it by function: drupal_add_library('system', 'drupal.ajax');
+      $form['#attached']['css'][] = drupal_get_path('module', 'sherlock') . '/templates/sherlock_content_output_tabs.css';
+      $form['#attached']['css'][] = drupal_get_path('module', 'sherlock') . '/templates/sherlock_content_output_table.css';
+      //----------------------------------------------------------------------------------------------------------------
 
       $output_containers = [];
       foreach ($form_state['values']['resources_chooser'] as $market_id) { //'olx', 'bsp', 'skl', or 0 (zero).
