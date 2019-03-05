@@ -25,7 +25,7 @@ class olx_ItemSniper extends ItemSniper {
   }
 
   protected function getItemLink(phpQueryObject $phpQueryNode): string {
-    //We parse link to array and then gather only required parts.
+    //We parse link to item and then gather only required parts.
     //For example, usually links from OLX ends with smth like "#1b78919f15;promoted" and we don't need such trash.
     $itemLink = $phpQueryNode->find($this->titleLinkSP)->attr('href');
     $linkParts = parse_url($itemLink);
@@ -45,5 +45,18 @@ class olx_ItemSniper extends ItemSniper {
 
   protected function getNextPageLink(phpQueryObject $phpQueryNode): string {
     return ($phpQueryNode->find($this->nextPageLinkSP)->attr('href'));
+  }
+
+  private function checkIfOffersExists(phpQueryObject $phpQueryNode): bool {
+    //Check if 'no items found' message present. If yes - IGNORE ALL return from OLX because it is NOT relevant.
+    $noAdsFoundMessage = $phpQueryNode->find('div.emptynew > p')->text(); //Empty string OR 'Не найдено ни одного объявления, соответствующего параметрам поиска. Проверьте правильность написания или введите другие параметры поиска'
+    $noAdsFoundMessage = trim($noAdsFoundMessage);
+    return empty($noAdsFoundMessage) ? TRUE : FALSE;
+  }
+
+  public function grabItems(): array {
+    $fullHTML = $this->getWebpageHtml($this->URL);
+    $doc = phpQuery::newDocument($fullHTML);
+    return ($this->checkIfOffersExists($doc)) ? parent::grabItems() : [];
   }
 }
