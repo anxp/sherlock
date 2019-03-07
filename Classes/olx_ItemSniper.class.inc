@@ -47,7 +47,7 @@ class olx_ItemSniper extends ItemSniper {
     return ($phpQueryNode->find($this->nextPageLinkSP)->attr('href'));
   }
 
-  private function checkIfOffersExists(phpQueryObject $phpQueryNode): bool {
+  private function isAdsRelevant(phpQueryObject $phpQueryNode): bool {
     //Check if 'no items found' message present. If yes - IGNORE ALL return from OLX because it is NOT relevant.
     $noAdsFoundMessage = $phpQueryNode->find('div.emptynew > p')->text(); //Empty string OR 'Не найдено ни одного объявления, соответствующего параметрам поиска. Проверьте правильность написания или введите другие параметры поиска'
     $noAdsFoundMessage = trim($noAdsFoundMessage);
@@ -57,6 +57,9 @@ class olx_ItemSniper extends ItemSniper {
   public function grabItems(): array {
     $fullHTML = $this->getWebpageHtml($this->URL);
     $doc = phpQuery::newDocument($fullHTML);
-    return ($this->checkIfOffersExists($doc)) ? parent::grabItems() : [];
+    $isAdsRelevant = $this->isAdsRelevant($doc);
+    phpQuery::unloadDocuments($doc); //TODO: check if unloadDocuments (actually unset) really works.
+
+    return $isAdsRelevant ? parent::grabItems() : [];
   }
 }
