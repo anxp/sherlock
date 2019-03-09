@@ -58,8 +58,7 @@ class olx_ItemSniper extends ItemSniper {
     $fullHTML = $this->getWebpageHtml($this->URL);
     $doc = phpQuery::newDocument($fullHTML);
     $isAdsRelevant = $this->isAdsRelevant($doc);
-    phpQuery::unloadDocuments($doc); //TODO: check if unloadDocuments (actually unset) really works.
-
+    phpQuery::unloadDocuments($doc);
     return $isAdsRelevant ? parent::grabItems() : [];
   }
 }
