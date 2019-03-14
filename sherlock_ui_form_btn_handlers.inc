@@ -12,7 +12,7 @@ function btn_addterm_handler($form, &$form_state) {
   $pressed_btn_name = $form_state['triggering_element']['#name'];
   if ($pressed_btn_name != 'btn_addterm') {return;}
 
-  new_block($form_state);
+  sherlock_new_block($form_state);
 
   $form_state['rebuild'] = TRUE;
 }
