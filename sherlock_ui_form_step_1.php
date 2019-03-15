@@ -42,12 +42,49 @@ if(isset($form_state['user_added'])) {
   }
 }
 
+//---------------- Additional search parameters block: -----------------------------------------------------------------
+$form['additional_params'] = [
+  '#type' => 'fieldset',
+  '#title' => 'Additional search parameters',
+  '#collapsible' => TRUE,
+  '#collapsed' => TRUE,
+];
+
 //By default, search performs only in headers, but some resources (OLX and Skylots, but not Besplatka) also supports
 //search in body. Technically, it adds specific suffix to URL.
-$form['dscr_chk'] = [
+$form['additional_params']['dscr_chk'] = [
   '#type' => 'checkbox',
-  '#title' => 'Search not only in titles, but in descriptions too (if resource supports).',
+  '#title' => 'Search in descriptions too (if resource supports).',
 ];
+
+$form['additional_params']['filter_by_price'] = [
+  '#type' => 'checkbox',
+  '#title' => 'Filter items by price:',
+];
+
+$form['additional_params']['price_from'] = [
+  '#type' => 'textfield',
+  '#title' => 'Price from:',
+  '#default_value' => '',
+  '#size' => 10,
+  '#maxlength' => 20,
+  '#description' => 'UAH', //'Enter the minimal price, at which (or higher) item will be selected.',
+  '#prefix' => '<div class="container-inline">',
+  '#suffix' => '</div>',
+];
+
+$form['additional_params']['price_to'] = [
+  '#type' => 'textfield',
+  '#title' => 'Price to:',
+  '#default_value' => '',
+  '#size' => 10,
+  '#maxlength' => 20,
+  '#description' => 'UAH', //'Enter the maximum acceptable price for items.',
+  '#prefix' => '<div class="container-inline">',
+  '#suffix' => '</div>',
+];
+
+//----------------------------------------------------------------------------------------------------------------------
 
 //Create a DIV wrapper for button(s) - according to Drupal 7 best practices recommendations:
 $form['first_step_buttons_wrapper'] = ['#type' => 'actions'];

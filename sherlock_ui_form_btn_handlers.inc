@@ -61,7 +61,7 @@ function btn_preview_handler($form, &$form_state) {
   if ($pressed_btn_name != 'btn_preview') {return;}
 
   //Get flag which indicates - search title only or body too:
-  $check_description_too = ((int) $form_state['values']['dscr_chk']) === 0 ? FALSE : TRUE;
+  $check_description_too = ((int) $form_state['values']['additional_params']['dscr_chk']) === 0 ? FALSE : TRUE;
 
   //Save all block values\variations to separate array. Strictly speaking, we don't need to check if key is starts with 'KEYWORD-', because all 1st level keys are 'KEYWORD-'.
   //But left this check just for reliability.
