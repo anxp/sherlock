@@ -7,12 +7,21 @@
  */
 
 class skl_MarketReference extends MarketReference implements iMarketReference {
+  //Skylots is not a flemarket but an auction. Which means it is no sense to filter items by price (it will tend to grow close to auction finish).
+  //So the only additional functionality Skylots supports - search in description flag.
   protected static $marketId = 'skl';
   protected static $marketName = 'SkyLots';
   protected static $domainName = 'skylots.org';
   protected static $searchPointOfEntry = 'search.php';
   protected static $wordsGlue = '+';
 
+  /**
+   * @param array $keyWords keywords to search;
+   * @param int|null $priceFrom not supported by SkyLots;
+   * @param int|null $priceTo not supported by SkyLots;
+   * @param bool $checkDescription search keywords in item description or not. By default only title checks for keywords;
+   * @return string result string which looks like usual URL, but unlike OLX - all parameters (including keywords string) are passed as GET-parameters here, after question mark.
+   */
   public static function makeRequestURL(array $keyWords, int $priceFrom = null, int $priceTo = null, bool $checkDescription = false): string {
     $queryParameters = [];
     $queryParameters['search'] = implode(self::$wordsGlue, $keyWords);
