@@ -60,12 +60,19 @@ function btn_preview_handler($form, &$form_state) {
   $pressed_btn_name = $form_state['triggering_element']['#name'];
   if ($pressed_btn_name != 'btn_preview') {return;}
 
+  $_SESSION['sherlock_tmp_storage'] = []; //Clean session from previous use.
+
   //Get flag which indicates - search title only or body too:
-  $check_description_too = ((int) $form_state['values']['additional_params']['dscr_chk']) === 0 ? FALSE : TRUE;
+  $check_description_too = $form_state['values']['additional_params']['dscr_chk'] === 0 ? FALSE : TRUE;
+
+  //Get price limits, if they are available:
+  $enable_price_filter = $form_state['values']['additional_params']['filter_by_price'] === 0 ? FALSE : TRUE;
+  $price_from = ($enable_price_filter && !empty($form_state['values']['additional_params']['price_from'])) ? intval($form_state['values']['additional_params']['price_from']) : null;
+  $price_to = ($enable_price_filter && !empty($form_state['values']['additional_params']['price_to'])) ? intval($form_state['values']['additional_params']['price_to']) : null;
 
   //Save all block values\variations to separate array. Strictly speaking, we don't need to check if key is starts with 'KEYWORD-', because all 1st level keys are 'KEYWORD-'.
   //But left this check just for reliability.
-  $block_values = array();
+  $block_values = [];
   foreach ($form_state['values']['query_constructor_block'] as $key => $value) {
     if (startsWith($key, 'KEYWORD-')) {
       $block_values[] = $value['VALUES']; //Each value of $block_values is ARRAY with combinations of one given keyword (like sony, soni).
@@ -79,27 +86,26 @@ function btn_preview_handler($form, &$form_state) {
   //Array with all search URLs for all user-specified resources. This collection of URL we will use to cURL each of them at the next step.
   //All values are splitted by nested arrays. Keys to nested arrays are names of the resources.
   $constructed_urls_collection = [];
+
+  $keywords_combinations = generate_all_possible_combinations($block_values);
+  $keywords_combinations_count = count($keywords_combinations);
   foreach ($form_state['values']['resources_chooser'] as $key => $value) { //$key here is flea market ID, like olx, bsp, skl
     if ($value !== 0) { //we take into consideration only checked resources, if checkbox unchecked its value == 0
-      $prefix = $resources_list[$key]::getSearchURL();
-      $glue = $resources_list[$key]::getWordsGlue();
-      $suffix = $check_description_too ? $resources_list[$key]::getSuffixDescrChk() : '';
-      $constructed_urls_collection[$key] = generate_all_possible_strings($block_values, $prefix, $glue, $suffix);
-    }
-  }
-  unset($key, $value);
+      for ($i = 0; $i < $keywords_combinations_count; $i++) {
+        $constructed_urls_collection[$key][] = $resources_list[$key]::makeRequestURL($keywords_combinations[$i], $price_from, $price_to, $check_description_too);
+      }
 
-  $_SESSION['sherlock_tmp_storage'] = [];
-  $_SESSION['sherlock_tmp_storage']['constructed_urls_collection'] = $constructed_urls_collection;
+      //Check constructed URLs, and left only unique of them:
+      $constructed_urls_collection[$key] = array_unique($constructed_urls_collection[$key]);
 
-  //Save selected (ONLY SELECTED!) fleamarkets to $_SESSION,
-  //(we'll take them by ajax from there in a moment from frontend, see $items['sherlock/selected-markets'] endpoint in sherlock.module):
-  foreach ($form_state['values']['resources_chooser'] as $key => $value) {
-    if ($value !== 0) {
+      //Save selected (ONLY SELECTED!) fleamarkets to $_SESSION,
+      //(we'll take them by ajax from there in a moment from frontend, see $items['sherlock/selected-markets'] endpoint in sherlock.module):
       $_SESSION['sherlock_tmp_storage']['selected_markets'][] = $key;
     }
   }
   unset($key, $value);
+
+  $_SESSION['sherlock_tmp_storage']['constructed_urls_collection'] = $constructed_urls_collection;
 
   //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- LET'S THE PARTY BEGIN! *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
   //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-

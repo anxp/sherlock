@@ -1,5 +1,4 @@
 <?php
-require_once 'sherlock_fleamarket_classes.inc';
 require_once 'sherlock_core_functions.inc';
 require_once 'sherlock_ui_form_btn_handlers.inc';
 require_once 'sherlock_themes.inc';
@@ -9,9 +8,16 @@ require_once 'Classes/Sherlock_FileManager_D7.class.inc';
 spl_autoload_register('SherlockClassLoader');
 
 function SherlockClassLoader($className) {
-  if (endsWith($className, 'ItemSniper')) {
+  if (endsWith($className, 'ItemSniper') || endsWith($className, 'MarketReference')) {
     $path = drupal_get_path('module', 'sherlock').DIRECTORY_SEPARATOR.'Classes'.DIRECTORY_SEPARATOR;
-    require_once $path.$className.'.class.inc';
+
+    if (file_exists($path.$className.'.class.inc')) {
+      require_once $path.$className.'.class.inc';
+    }
+
+    if (file_exists($path.$className.'.interface.inc')) {
+      require_once $path.$className.'.interface.inc';
+    }
   }
 }
 
@@ -57,15 +63,17 @@ function sherlock_menu() {
   return $items;
 }
 
-//This is 'global' function which give possibility get actual list of available fleamarket objects anywhere in the module.
+//This is 'global' function which give possibility to get actual list of available fleamarket objects anywhere in the module.
 //It can return 0-1-2 indexed array, or associative array where keys is fleamarkets IDs (like olx, bsp, skl).
-//When creating new fleamarket - just add it's class to sherlock_fleamarket_classes.inc, make new array element in THIS function, and edit .css (add one more tab).
+//When creating new fleamarket - just add it's class, which extends MarketReference class, make new array element in THIS function, and edit .css (add one more tab).
 function get_available_fleamarkets($assoc = FALSE) {
   $fleamarket_objects = [];
 
-  $fleamarket_objects[0] = new OlxMarket();
-  $fleamarket_objects[1] = new BesplatkaMarket();
-  $fleamarket_objects[2] = new SkylotsMarket();
+  //These classes have ONLY static methods,
+  //but we really need to create objects of them, to have ability to pass the object reference to somewhere such as array element:
+  $fleamarket_objects[0] = new olx_MarketReference();
+  $fleamarket_objects[1] = new bsp_MarketReference();
+  $fleamarket_objects[2] = new skl_MarketReference();
 
   if ($assoc) {
     $fleamarket_objects_assoc = [];
