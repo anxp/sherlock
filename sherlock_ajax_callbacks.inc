@@ -64,6 +64,7 @@ function fetch_market_ajax() {
     $value['thumbnail'] = $locUrl ? $locUrl : '';
     unset($pic);
   }
-
+  unset($value);
+  
   return $filteredData;
 }
