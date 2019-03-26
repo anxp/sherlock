@@ -54,7 +54,12 @@ function fetch_market_ajax() {
 
   //And finally - in $filteredData we'll have filtered and unique collection of [title, link, price] for given marketID,
   //and this data we'll return to frontend as JSON.
-  $filteredData = sherlock_array_unique_by_field($flattened_arr, 'link');
+  $filteredData = ArrayFiltration_2D::selectUniqueSubArrays_byField($flattened_arr, 'link');
+
+  //If user specified price range - let's do such filtration!
+  $price_from = $_SESSION['sherlock_tmp_storage']['price_from'];
+  $price_to = $_SESSION['sherlock_tmp_storage']['price_to'];
+  $filteredData = ArrayFiltration_2D::selectSubArrays_byFieldValueRange($filteredData, 'price_value', $price_from, $price_to);
 
   //At the very last step - cache images (or use already cached if they are exists):
   foreach ($filteredData as &$value) {
@@ -65,6 +70,6 @@ function fetch_market_ajax() {
     unset($pic);
   }
   unset($value);
-  
+
   return $filteredData;
 }

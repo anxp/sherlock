@@ -8,7 +8,7 @@ require_once 'Classes/Sherlock_FileManager_D7.class.inc';
 spl_autoload_register('SherlockClassLoader');
 
 function SherlockClassLoader($className) {
-  if (endsWith($className, 'ItemSniper') || endsWith($className, 'MarketReference')) {
+  if (endsWith($className, 'ItemSniper') || endsWith($className, 'MarketReference') || endsWith($className, 'ArrayFiltration_2D')) {
     $path = drupal_get_path('module', 'sherlock').DIRECTORY_SEPARATOR.'Classes'.DIRECTORY_SEPARATOR;
 
     if (file_exists($path.$className.'.class.inc')) {

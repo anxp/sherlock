@@ -106,6 +106,8 @@ function btn_preview_handler($form, &$form_state) {
   unset($key, $value);
 
   $_SESSION['sherlock_tmp_storage']['constructed_urls_collection'] = $constructed_urls_collection;
+  $_SESSION['sherlock_tmp_storage']['price_from'] = $price_from;
+  $_SESSION['sherlock_tmp_storage']['price_to'] = $price_to;
 
   //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- LET'S THE PARTY BEGIN! *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
   //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-

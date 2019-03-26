@@ -56,16 +56,7 @@ function generate_all_possible_combinations (array $block_values): array {
   }
 
   //And finally, let's check that all elements of $combinations_array are unique comparing with each other. Yes, we need to compare arrays!
-  for ($i = 0; $i < $combinations_array_count; $i++) {
-    for ($j = 0; $j < $combinations_array_count; $j++) {
-      if ($i === $j) {continue;} //Obviously, we don't want compare element with itself :)
-      if (array_diff($combinations_array[$i], $combinations_array[$j]) === [] && count($combinations_array[$i]) === count($combinations_array[$j])) {
-        $combinations_array[$j] = []; //If duplicate found -> replace it with empty array.
-      }
-    }
-  }
-  //Select only NOT EMPTY elements:
-  $filtered_array = array_filter($combinations_array, function ($value) {return empty($value) ? FALSE : TRUE;});
+  $filtered_array = ArrayFiltration_2D::selectUniqueSubArrays_byTotalCompare($combinations_array);
 
   return $filtered_array;
 }
@@ -133,26 +124,6 @@ function endsWith($haystack, $needle) {
   }
 
   return (substr($haystack, -$length) === $needle);
-}
-
-function sherlock_array_unique_by_field($input_array, $field_to_check) {
-  if (!is_array($input_array)) {return [];}
-
-  $tmp_arr = [];
-  foreach ($input_array as $key => $value) {
-    $tmp_arr[$key] = $value[$field_to_check];
-  }
-  unset($key, $value);
-
-  $tmp_arr = array_unique($tmp_arr);
-
-  $filtered_arr = [];
-  foreach ($tmp_arr as $key => $value) {
-    $filtered_arr[] = $input_array[$key];
-  }
-  unset($key, $value);
-
-  return $filtered_arr;
 }
 
 function sherlock_get_random_string($length) {
